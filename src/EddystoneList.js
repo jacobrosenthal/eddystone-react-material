@@ -4,11 +4,9 @@ let ThemeManager = new mui.Styles.ThemeManager();
 let Colors = mui.Styles.Colors;
 
 let List = mui.List;
-let ListItem = mui.ListItem;
 let Dialog = mui.Dialog;
 
-let DeviceBluetooth = require('material-ui/lib/svg-icons/device/bluetooth');
-
+let EddystoneListItem = require('./EddystoneListItem');
 let EddystoneAdd = require('./EddystoneAdd');
 
 let EddystoneList = React.createClass({
@@ -58,25 +56,12 @@ let EddystoneList = React.createClass({
 
     let Devices;
     if(this.state.devices.length > 0) {
-      let i = 0;
-      let devicesList = this.state.devices.map(function (device) {
-        let url = 'URL: ' + device.url;
-        let uid = 'UID: ' + device.namespaceId + device.instanceId;
+      let devicesList = this.state.devices.map(function (device, index) {
         return (
-          <ListItem
+          <EddystoneListItem
+          device={device}
           onClick={self._editDevice.bind(null, device)}
-          primaryText={ <span>{device.name} - {device.status}</span>}
-          leftIcon={<DeviceBluetooth />}
-          secondaryText={
-            <p>
-              {device.type === 'url' ? url : uid }
-              <br/>
-              battery:{device.battery} - temp:{device.temperature}
-            </p>
-          }
-          secondaryTextLines={2}
-          key={i++}/>
-        );
+          key={index}/>);
       });
       Devices = (<List>{devicesList}</List>);
 

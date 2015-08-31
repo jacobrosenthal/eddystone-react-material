@@ -41794,9 +41794,11 @@
 
 	    var Devices = undefined;
 	    if (this.state.devices.length > 0) {
-	      var devicesList = this.state.devices.map(function (device) {
-	        return React.createElement(EddystoneListItem, { device: device,
-	          onClick: self._editDevice.bind(null, device) });
+	      var devicesList = this.state.devices.map(function (device, index) {
+	        return React.createElement(EddystoneListItem, {
+	          device: device,
+	          onClick: self._editDevice.bind(null, device),
+	          key: index });
 	      });
 	      Devices = React.createElement(
 	        List,
@@ -41848,23 +41850,8 @@
 	var ThemeManager = new mui.Styles.ThemeManager();
 
 	var ListItem = mui.ListItem;
-	var SelectField = mui.SelectField;
 
 	var DeviceBluetooth = __webpack_require__(321);
-
-	var deviceStates = [{
-	  display: 'Out of Range',
-	  value: 'Out of Range'
-	}, {
-	  display: 'Far',
-	  value: 'Far'
-	}, {
-	  display: 'Near',
-	  value: 'Near'
-	}, {
-	  display: 'Immediate',
-	  value: 'Immediate'
-	}];
 
 	var EddystoneListItem = React.createClass({
 	  displayName: 'EddystoneListItem',
@@ -41896,13 +41883,7 @@
 	        null,
 	        device.name,
 	        ' - ',
-	        React.createElement(SelectField, {
-	          floatingLabelText: 'Device State',
-	          value: device.status,
-	          onChange: this.onClick,
-	          valueMember: 'value',
-	          displayMember: 'display',
-	          menuItems: deviceStates })
+	        device.status
 	      ),
 	      leftIcon: React.createElement(DeviceBluetooth, null),
 	      secondaryText: React.createElement(
@@ -41916,10 +41897,6 @@
 	        device.temperature
 	      ),
 	      secondaryTextLines: 2 });
-	  },
-
-	  onclick: function onclick() {
-	    console.log('clicked');
 	  }
 
 	});
