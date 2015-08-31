@@ -22571,13 +22571,15 @@
 
 	var FloatingActionButton = mui.FloatingActionButton;
 	var AppBar = mui.AppBar;
+
+	var List = mui.List;
 	var Dialog = mui.Dialog;
 
 	var ContentAdd = __webpack_require__(315);
 
 	var Erm = __webpack_require__(316);
-	var EddystoneList = Erm.EddystoneList;
 	var EddystoneAdd = Erm.EddystoneAdd;
+	var EddystoneListItem = Erm.EddystoneListItem;
 
 	var containerStyle = {
 	  textAlign: 'left'
@@ -22594,12 +22596,22 @@
 	  left: '85%'
 	};
 
+	var emptyStyle = {
+	  color: Colors.minBlack,
+	  fontSize: 24,
+	  margin: 'auto',
+	  position: 'absolute',
+	  top: '50%',
+	  left: '40%' //just need to properly size this..
+	};
+
 	var App = React.createClass({
 	  displayName: 'App',
 
 	  getInitialState: function getInitialState() {
 	    return {
-	      peripherals: [{ name: 'pumpkins', status: 'Immediate', type: 'uid', namespaceId: 'ed8e1220eac38ac4f4c2', instanceId: '000000000001', tlmCount: 2, tlmPeriod: 10, battery: 89, temperature: 25, device: null }, { name: 'pumpkins2', status: 'Out of Range', type: 'uid', namespaceId: 'ed8e1220eac38ac4f4c2', instanceId: '000000000002', tlmCount: 2, tlmPeriod: 10, battery: 98, temperature: 25, device: null }, { name: 'pumpkins3', status: 'Far', type: 'uid', namespaceId: 'ed8e1220eac38ac4f4c2', instanceId: '000000000003', tlmCount: 2, tlmPeriod: 10, battery: 78, temperature: 24, device: null }, { name: 'pumpkins4', status: 'Out of Range', type: 'uid', namespaceId: 'ed8e1220eac38ac4f4c2', instanceId: '000000000004', tlmCount: 2, tlmPeriod: 10, battery: 94, temperature: 24, device: null }, { name: 'pumpkins5', status: 'Out of Range', type: 'uid', namespaceId: 'ed8e1220eac38ac4f4c2', instanceId: '000000000005', tlmCount: 2, tlmPeriod: 10, battery: 99, temperature: 26, device: null }, { name: 'pumpkins6', status: 'Immediate', type: 'url', url: 'http://www.google.com', tlmCount: 2, tlmPeriod: 10, battery: 77, temperature: 25, device: null }]
+	      peripherals: [{ name: 'pumpkins', status: 'Immediate', type: 'uid', namespaceId: 'ed8e1220eac38ac4f4c2', instanceId: '000000000001', tlmCount: 2, tlmPeriod: 10, battery: 89, temperature: 25, device: null }, { name: 'pumpkins2', status: 'Out of Range', type: 'uid', namespaceId: 'ed8e1220eac38ac4f4c2', instanceId: '000000000002', tlmCount: 2, tlmPeriod: 10, battery: 98, temperature: 25, device: null }, { name: 'pumpkins3', status: 'Far', type: 'uid', namespaceId: 'ed8e1220eac38ac4f4c2', instanceId: '000000000003', tlmCount: 2, tlmPeriod: 10, battery: 78, temperature: 24, device: null }, { name: 'pumpkins4', status: 'Out of Range', type: 'uid', namespaceId: 'ed8e1220eac38ac4f4c2', instanceId: '000000000004', tlmCount: 2, tlmPeriod: 10, battery: 94, temperature: 24, device: null }, { name: 'pumpkins5', status: 'Out of Range', type: 'uid', namespaceId: 'ed8e1220eac38ac4f4c2', instanceId: '000000000005', tlmCount: 2, tlmPeriod: 10, battery: 99, temperature: 26, device: null }, { name: 'pumpkins6', status: 'Immediate', type: 'url', url: 'http://www.google.com', tlmCount: 2, tlmPeriod: 10, battery: 77, temperature: 25, device: null }],
+	      device: {}
 	    };
 	  },
 
@@ -22621,23 +22633,44 @@
 
 	  render: function render() {
 
+	    var self = this;
+
+	    var devicesList = this.state.peripherals.map(function (device, index) {
+	      return React.createElement(EddystoneListItem, {
+	        device: device,
+	        onRow: self._onEditDevice.bind(null, device),
+	        onButton: self._onChangeStatus.bind(null, device),
+	        key: index });
+	    });
+
+	    var Devices = React.createElement(
+	      List,
+	      null,
+	      devicesList
+	    );
+	    var EmptyDevices = React.createElement(
+	      'span',
+	      { style: emptyStyle },
+	      'no devices found'
+	    );
+
 	    //Standard Actions
-	    var standardActions = [{ text: 'Cancel' }, { text: 'Submit', onTouchTap: this._onDialogSubmit, ref: 'submit' }];
+	    var standardActions = [{ text: 'Cancel', onTouchTap: this._onDialogCancel }, { text: 'Submit', onTouchTap: this._onDialogSubmit, ref: 'submit' }];
 
 	    return React.createElement(
 	      'div',
 	      { style: containerStyle },
 	      React.createElement(AppBar, { style: appBarStyle, showMenuIconButton: false, title: 'Visual Bleno' }),
-	      React.createElement(EddystoneList, { peripherals: this.state.peripherals, onSubmit: this._onDialogSubmit }),
+	      this.state.peripherals.length > 0 ? Devices : EmptyDevices,
 	      React.createElement(
 	        FloatingActionButton,
-	        { style: actionButtonStyle, onTouchTap: this._handleTouchTap },
+	        { style: actionButtonStyle, onTouchTap: this._onAddDevice },
 	        React.createElement(ContentAdd, null)
 	      ),
 	      React.createElement(
 	        Dialog,
 	        {
-	          ref: 'EddystoneAdd',
+	          ref: 'DeviceView',
 	          autoDetectWindowHeight: true, autoScrollBodyContent: true,
 	          title: 'Add Device',
 	          actions: standardActions,
@@ -22647,14 +22680,29 @@
 	    );
 	  },
 
-	  _handleTouchTap: function _handleTouchTap() {
-	    this.refs.EddystoneAdd.show();
+	  _onAddDevice: function _onAddDevice() {
+	    this.setState({ device: null });
+	    this.refs.DeviceView.show();
+	  },
+
+	  _onEditDevice: function _onEditDevice(device) {
+	    this.setState({ device: device });
+	    this.refs.DeviceView.show();
 	  },
 
 	  _onDialogSubmit: function _onDialogSubmit() {
-	    //how to tell if existing or not?
-	    this.refs.EddystoneAdd.dismiss();
+	    this.refs.DeviceView.dismiss();
+	  },
+
+	  _onDialogCancel: function _onDialogCancel() {
+	    console.log('omomog');
+	    this.refs.DeviceView.dismiss();
+	  },
+
+	  _onChangeStatus: function _onChangeStatus(device) {
+	    console.log('dog');
 	  }
+
 	});
 
 	module.exports = App;
@@ -41210,8 +41258,9 @@
 
 	module.exports = {
 	  EddystoneAdd: __webpack_require__(317),
-	  EddystoneList: __webpack_require__(319)
+	  EddystoneListItem: __webpack_require__(319)
 	}
+
 
 /***/ },
 /* 317 */
@@ -41740,124 +41789,19 @@
 	var React = __webpack_require__(2);
 	var mui = __webpack_require__(176);
 	var ThemeManager = new mui.Styles.ThemeManager();
-	var Colors = mui.Styles.Colors;
-
-	var List = mui.List;
-	var Dialog = mui.Dialog;
-
-	var EddystoneListItem = __webpack_require__(320);
-	var EddystoneAdd = __webpack_require__(317);
-
-	var EddystoneList = React.createClass({
-	  displayName: 'EddystoneList',
-
-	  propTypes: {
-	    onSubmit: React.PropTypes.func.isRequired
-	  },
-
-	  getInitialState: function getInitialState() {
-	    return {
-	      devices: this.props.peripherals || [],
-	      device: {}
-	    };
-	  },
-
-	  childContextTypes: {
-	    muiTheme: React.PropTypes.object
-	  },
-
-	  getChildContext: function getChildContext() {
-	    return {
-	      muiTheme: ThemeManager.getCurrentTheme()
-	    };
-	  },
-
-	  render: function render() {
-
-	    //Standard Actions
-	    var standardActions = [{ text: 'Cancel' }, { text: 'Submit', onTouchTap: this.props.onSubmit, ref: 'submit' }];
-
-	    var self = this;
-
-	    var containerStyle = {
-	      textAlign: 'left'
-	    };
-
-	    var emptyStyle = {
-	      color: Colors.minBlack,
-	      fontSize: 24,
-	      margin: 'auto',
-	      position: 'absolute',
-	      top: '50%',
-	      left: '40%' //just need to properly size this..
-	    };
-
-	    var Devices = undefined;
-	    if (this.state.devices.length > 0) {
-	      var devicesList = this.state.devices.map(function (device, index) {
-	        return React.createElement(EddystoneListItem, {
-	          device: device,
-	          onClick: self._editDevice.bind(null, device),
-	          key: index });
-	      });
-	      Devices = React.createElement(
-	        List,
-	        null,
-	        devicesList
-	      );
-	    } else {
-	      Devices = React.createElement(
-	        'span',
-	        { style: emptyStyle },
-	        'no devices found'
-	      );
-	    }
-
-	    return React.createElement(
-	      'div',
-	      { style: containerStyle },
-	      Devices,
-	      React.createElement(
-	        Dialog,
-	        {
-	          ref: 'EddystoneAdd',
-	          autoDetectWindowHeight: true, autoScrollBodyContent: true,
-	          title: 'Edit Device',
-	          actions: standardActions,
-	          actionFocus: 'submit' },
-	        React.createElement(EddystoneAdd, this.state.device)
-	      )
-	    );
-	  },
-
-	  _editDevice: function _editDevice(device) {
-	    this.setState({ device: device });
-	    this.refs.EddystoneAdd.show();
-	  }
-
-	});
-
-	module.exports = EddystoneList;
-
-/***/ },
-/* 320 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	var React = __webpack_require__(2);
-	var mui = __webpack_require__(176);
-	var ThemeManager = new mui.Styles.ThemeManager();
 
 	var ListItem = mui.ListItem;
+	var IconButton = mui.IconButton;
 
-	var DeviceBluetooth = __webpack_require__(321);
+	var DeviceBluetooth = __webpack_require__(320);
+	var DeviceBluetoothDisabled = __webpack_require__(321);
 
 	var EddystoneListItem = React.createClass({
 	  displayName: 'EddystoneListItem',
 
 	  propTypes: {
-	    onClick: React.PropTypes.func.isRequired,
+	    onButton: React.PropTypes.func.isRequired,
+	    onRow: React.PropTypes.func.isRequired,
 	    device: React.PropTypes.object.isRequired
 	  },
 
@@ -41876,8 +41820,25 @@
 	    var url = 'URL: ' + device.url;
 	    var uid = 'UID: ' + device.namespaceId + device.instanceId;
 
+	    var EnableButton = React.createElement(
+	      IconButton,
+	      {
+	        tooltip: 'Enable',
+	        onTouchTap: this.props.onButton },
+	      React.createElement(DeviceBluetooth, null)
+	    );
+
+	    var DisableButton = React.createElement(
+	      IconButton,
+	      {
+	        tooltip: 'Disable',
+	        onTouchTap: this.props.onButton },
+	      React.createElement(DeviceBluetoothDisabled, null)
+	    );
+
 	    return React.createElement(ListItem, {
-	      onClick: this.props.onClick,
+	      rightIconButton: device.status === 'Out of Range' ? EnableButton : DisableButton,
+	      onTouchTap: this.props.onRow,
 	      primaryText: React.createElement(
 	        'span',
 	        null,
@@ -41904,7 +41865,7 @@
 	module.exports = EddystoneListItem;
 
 /***/ },
-/* 321 */
+/* 320 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -41929,6 +41890,33 @@
 	});
 
 	module.exports = DeviceBluetooth;
+
+/***/ },
+/* 321 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var React = __webpack_require__(2);
+	var PureRenderMixin = React.addons.PureRenderMixin;
+	var SvgIcon = __webpack_require__(202);
+
+	var DeviceBluetoothDisabled = React.createClass({
+	  displayName: 'DeviceBluetoothDisabled',
+
+	  mixins: [PureRenderMixin],
+
+	  render: function render() {
+	    return React.createElement(
+	      SvgIcon,
+	      this.props,
+	      React.createElement('path', { d: 'M13 5.83l1.88 1.88-1.6 1.6 1.41 1.41 3.02-3.02L12 2h-1v5.03l2 2v-3.2zM5.41 4L4 5.41 10.59 12 5 17.59 6.41 19 11 14.41V22h1l4.29-4.29 2.3 2.29L20 18.59 5.41 4zM13 18.17v-3.76l1.88 1.88L13 18.17z' })
+	    );
+	  }
+
+	});
+
+	module.exports = DeviceBluetoothDisabled;
 
 /***/ },
 /* 322 */

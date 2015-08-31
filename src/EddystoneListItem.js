@@ -3,12 +3,15 @@ let mui = require('material-ui');
 let ThemeManager = new mui.Styles.ThemeManager();
 
 let ListItem = mui.ListItem;
+let IconButton = mui.IconButton;
 
 let DeviceBluetooth = require('material-ui/lib/svg-icons/device/bluetooth');
+let DeviceBluetoothDisabled = require('material-ui/lib/svg-icons/device/bluetooth-disabled');
 
 let EddystoneListItem = React.createClass({
   propTypes: {
-    onClick: React.PropTypes.func.isRequired,
+    onButton: React.PropTypes.func.isRequired,
+    onRow: React.PropTypes.func.isRequired,
     device: React.PropTypes.object.isRequired
   },
 
@@ -27,9 +30,22 @@ let EddystoneListItem = React.createClass({
     let url = 'URL: ' + device.url;
     let uid = 'UID: ' + device.namespaceId + device.instanceId;
 
+    let EnableButton = (<IconButton
+                    tooltip="Enable"
+                    onTouchTap={this.props.onButton}>
+                    <DeviceBluetooth />
+                  </IconButton>);
+
+    let DisableButton = (<IconButton
+                    tooltip="Disable"
+                    onTouchTap={this.props.onButton}>
+                    <DeviceBluetoothDisabled />
+                  </IconButton>);
+
     return (
       <ListItem
-      onClick={this.props.onClick}
+      rightIconButton={device.status === 'Out of Range' ? EnableButton : DisableButton}
+      onTouchTap={this.props.onRow}
       primaryText={<span>{device.name} - {device.status}</span>}
       leftIcon={<DeviceBluetooth />}
       secondaryText={
@@ -41,7 +57,7 @@ let EddystoneListItem = React.createClass({
       }
       secondaryTextLines={2}/>
     );
-  },
+  }
 
 });
 
