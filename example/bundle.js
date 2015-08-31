@@ -56,7 +56,7 @@
 	var React = __webpack_require__(2);
 	var App = __webpack_require__(175);
 
-	var injectTapEventPlugin = __webpack_require__(321);
+	var injectTapEventPlugin = __webpack_require__(322);
 
 	//Needed for React Developer Tools
 	window.React = React;
@@ -22599,7 +22599,7 @@
 
 	  getInitialState: function getInitialState() {
 	    return {
-	      peripherals: [{ name: 'pumpkins', status: 'Immediate', type: 'uid', namespaceId: 'ed8e1220eac38ac4f4c2', instanceId: '000000000001', tlmCount: 2, tlmPeriod: 10, battery: 89, temperature: 25 }, { name: 'pumpkins2', status: 'Out of Range', type: 'uid', namespaceId: 'ed8e1220eac38ac4f4c2', instanceId: '000000000002', tlmCount: 2, tlmPeriod: 10, battery: 98, temperature: 25 }, { name: 'pumpkins3', status: 'Far', type: 'uid', namespaceId: 'ed8e1220eac38ac4f4c2', instanceId: '000000000003', tlmCount: 2, tlmPeriod: 10, battery: 78, temperature: 24 }, { name: 'pumpkins4', status: 'Out of Range', type: 'uid', namespaceId: 'ed8e1220eac38ac4f4c2', instanceId: '000000000004', tlmCount: 2, tlmPeriod: 10, battery: 94, temperature: 24 }, { name: 'pumpkins5', status: 'Out of Range', type: 'uid', namespaceId: 'ed8e1220eac38ac4f4c2', instanceId: '000000000005', tlmCount: 2, tlmPeriod: 10, battery: 99, temperature: 26 }, { name: 'pumpkins6', status: 'Immediate', type: 'url', url: 'http://www.google.com', tlmCount: 2, tlmPeriod: 10, battery: 77, temperature: 25 }]
+	      peripherals: [{ name: 'pumpkins', status: 'Immediate', type: 'uid', namespaceId: 'ed8e1220eac38ac4f4c2', instanceId: '000000000001', tlmCount: 2, tlmPeriod: 10, battery: 89, temperature: 25, device: null }, { name: 'pumpkins2', status: 'Out of Range', type: 'uid', namespaceId: 'ed8e1220eac38ac4f4c2', instanceId: '000000000002', tlmCount: 2, tlmPeriod: 10, battery: 98, temperature: 25, device: null }, { name: 'pumpkins3', status: 'Far', type: 'uid', namespaceId: 'ed8e1220eac38ac4f4c2', instanceId: '000000000003', tlmCount: 2, tlmPeriod: 10, battery: 78, temperature: 24, device: null }, { name: 'pumpkins4', status: 'Out of Range', type: 'uid', namespaceId: 'ed8e1220eac38ac4f4c2', instanceId: '000000000004', tlmCount: 2, tlmPeriod: 10, battery: 94, temperature: 24, device: null }, { name: 'pumpkins5', status: 'Out of Range', type: 'uid', namespaceId: 'ed8e1220eac38ac4f4c2', instanceId: '000000000005', tlmCount: 2, tlmPeriod: 10, battery: 99, temperature: 26, device: null }, { name: 'pumpkins6', status: 'Immediate', type: 'url', url: 'http://www.google.com', tlmCount: 2, tlmPeriod: 10, battery: 77, temperature: 25, device: null }]
 	    };
 	  },
 
@@ -22628,7 +22628,7 @@
 	      'div',
 	      { style: containerStyle },
 	      React.createElement(AppBar, { style: appBarStyle, showMenuIconButton: false, title: 'Visual Bleno' }),
-	      React.createElement(EddystoneList, { peripherals: this.state.peripherals }),
+	      React.createElement(EddystoneList, { peripherals: this.state.peripherals, onSubmit: this._onDialogSubmit }),
 	      React.createElement(
 	        FloatingActionButton,
 	        { style: actionButtonStyle, onTouchTap: this._handleTouchTap },
@@ -22652,7 +22652,8 @@
 	  },
 
 	  _onDialogSubmit: function _onDialogSubmit() {
-	    console.log('_onDialogSubmit');
+	    //how to tell if existing or not?
+	    this.refs.EddystoneAdd.dismiss();
 	  }
 	});
 
@@ -41221,7 +41222,6 @@
 	var React = __webpack_require__(2);
 	var mui = __webpack_require__(176);
 	var ThemeManager = new mui.Styles.ThemeManager();
-	var Colors = mui.Styles.Colors;
 
 	var TextField = mui.TextField;
 	var SelectField = mui.SelectField;
@@ -41743,15 +41743,17 @@
 	var Colors = mui.Styles.Colors;
 
 	var List = mui.List;
-	var ListItem = mui.ListItem;
 	var Dialog = mui.Dialog;
 
-	var DeviceBluetooth = __webpack_require__(320);
-
+	var EddystoneListItem = __webpack_require__(320);
 	var EddystoneAdd = __webpack_require__(317);
 
 	var EddystoneList = React.createClass({
 	  displayName: 'EddystoneList',
+
+	  propTypes: {
+	    onSubmit: React.PropTypes.func.isRequired
+	  },
 
 	  getInitialState: function getInitialState() {
 	    return {
@@ -41771,10 +41773,9 @@
 	  },
 
 	  render: function render() {
-	    var _this = this;
 
 	    //Standard Actions
-	    var standardActions = [{ text: 'Cancel' }, { text: 'Submit', onTouchTap: this._onDialogSubmit, ref: 'submit' }];
+	    var standardActions = [{ text: 'Cancel' }, { text: 'Submit', onTouchTap: this.props.onSubmit, ref: 'submit' }];
 
 	    var self = this;
 
@@ -41793,40 +41794,15 @@
 
 	    var Devices = undefined;
 	    if (this.state.devices.length > 0) {
-	      (function () {
-	        var i = 0;
-	        var devicesList = _this.state.devices.map(function (device) {
-	          var url = 'URL: ' + device.url;
-	          var uid = 'UID: ' + device.namespaceId + device.instanceId;
-	          return React.createElement(ListItem, {
-	            onClick: self._editDevice.bind(null, device),
-	            primaryText: React.createElement(
-	              'span',
-	              null,
-	              device.name,
-	              ' - ',
-	              device.status
-	            ),
-	            leftIcon: React.createElement(DeviceBluetooth, null),
-	            secondaryText: React.createElement(
-	              'p',
-	              null,
-	              device.type === 'url' ? url : uid,
-	              React.createElement('br', null),
-	              'battery:',
-	              device.battery,
-	              ' - temp:',
-	              device.temperature
-	            ),
-	            secondaryTextLines: 2,
-	            key: i++ });
-	        });
-	        Devices = React.createElement(
-	          List,
-	          null,
-	          devicesList
-	        );
-	      })();
+	      var devicesList = this.state.devices.map(function (device) {
+	        return React.createElement(EddystoneListItem, { device: device,
+	          onClick: self._editDevice.bind(null, device) });
+	      });
+	      Devices = React.createElement(
+	        List,
+	        null,
+	        devicesList
+	      );
 	    } else {
 	      Devices = React.createElement(
 	        'span',
@@ -41842,7 +41818,7 @@
 	      React.createElement(
 	        Dialog,
 	        {
-	          ref: 'EddystoneEdit',
+	          ref: 'EddystoneAdd',
 	          autoDetectWindowHeight: true, autoScrollBodyContent: true,
 	          title: 'Edit Device',
 	          actions: standardActions,
@@ -41854,18 +41830,104 @@
 
 	  _editDevice: function _editDevice(device) {
 	    this.setState({ device: device });
-	    this.refs.EddystoneEdit.show();
-	  },
-
-	  _onDialogSubmit: function _onDialogSubmit() {
-	    console.log('_onDialogSubmit');
+	    this.refs.EddystoneAdd.show();
 	  }
+
 	});
 
 	module.exports = EddystoneList;
 
 /***/ },
 /* 320 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var React = __webpack_require__(2);
+	var mui = __webpack_require__(176);
+	var ThemeManager = new mui.Styles.ThemeManager();
+
+	var ListItem = mui.ListItem;
+	var SelectField = mui.SelectField;
+
+	var DeviceBluetooth = __webpack_require__(321);
+
+	var deviceStates = [{
+	  display: 'Out of Range',
+	  value: 'Out of Range'
+	}, {
+	  display: 'Far',
+	  value: 'Far'
+	}, {
+	  display: 'Near',
+	  value: 'Near'
+	}, {
+	  display: 'Immediate',
+	  value: 'Immediate'
+	}];
+
+	var EddystoneListItem = React.createClass({
+	  displayName: 'EddystoneListItem',
+
+	  propTypes: {
+	    onClick: React.PropTypes.func.isRequired,
+	    device: React.PropTypes.object.isRequired
+	  },
+
+	  childContextTypes: {
+	    muiTheme: React.PropTypes.object
+	  },
+
+	  getChildContext: function getChildContext() {
+	    return {
+	      muiTheme: ThemeManager.getCurrentTheme()
+	    };
+	  },
+
+	  render: function render() {
+	    var device = this.props.device;
+	    var url = 'URL: ' + device.url;
+	    var uid = 'UID: ' + device.namespaceId + device.instanceId;
+
+	    return React.createElement(ListItem, {
+	      onClick: this.props.onClick,
+	      primaryText: React.createElement(
+	        'span',
+	        null,
+	        device.name,
+	        ' - ',
+	        React.createElement(SelectField, {
+	          floatingLabelText: 'Device State',
+	          value: device.status,
+	          onChange: this.onClick,
+	          valueMember: 'value',
+	          displayMember: 'display',
+	          menuItems: deviceStates })
+	      ),
+	      leftIcon: React.createElement(DeviceBluetooth, null),
+	      secondaryText: React.createElement(
+	        'p',
+	        null,
+	        device.type === 'url' ? url : uid,
+	        React.createElement('br', null),
+	        'battery:',
+	        device.battery,
+	        ' - temp:',
+	        device.temperature
+	      ),
+	      secondaryTextLines: 2 });
+	  },
+
+	  onclick: function onclick() {
+	    console.log('clicked');
+	  }
+
+	});
+
+	module.exports = EddystoneListItem;
+
+/***/ },
+/* 321 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -41892,7 +41954,7 @@
 	module.exports = DeviceBluetooth;
 
 /***/ },
-/* 321 */
+/* 322 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = function injectTapEventPlugin () {
@@ -41900,14 +41962,14 @@
 	  React.initializeTouchEvents(true);
 
 	  __webpack_require__(73).injection.injectEventPluginsByName({
-	    "ResponderEventPlugin": __webpack_require__(322),
-	    "TapEventPlugin":       __webpack_require__(323)
+	    "ResponderEventPlugin": __webpack_require__(323),
+	    "TapEventPlugin":       __webpack_require__(324)
 	  });
 	};
 
 
 /***/ },
-/* 322 */
+/* 323 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -42222,7 +42284,7 @@
 
 
 /***/ },
-/* 323 */
+/* 324 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -42250,7 +42312,7 @@
 	var EventPluginUtils = __webpack_require__(8);
 	var EventPropagators = __webpack_require__(97);
 	var SyntheticUIEvent = __webpack_require__(110);
-	var TouchEventUtils = __webpack_require__(324);
+	var TouchEventUtils = __webpack_require__(325);
 	var ViewportMetrics = __webpack_require__(78);
 
 	var keyOf = __webpack_require__(43);
@@ -42394,7 +42456,7 @@
 
 
 /***/ },
-/* 324 */
+/* 325 */
 /***/ function(module, exports) {
 
 	/**

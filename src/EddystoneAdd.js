@@ -1,7 +1,6 @@
 let React = require('react/addons');
 let mui = require('material-ui');
 let ThemeManager = new mui.Styles.ThemeManager();
-let Colors = mui.Styles.Colors;
 
 let TextField = mui.TextField;
 let SelectField = mui.SelectField;

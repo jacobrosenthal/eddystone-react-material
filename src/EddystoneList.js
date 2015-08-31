@@ -12,6 +12,10 @@ let DeviceBluetooth = require('material-ui/lib/svg-icons/device/bluetooth');
 let EddystoneAdd = require('./EddystoneAdd');
 
 let EddystoneList = React.createClass({
+  propTypes: {
+    onSubmit: React.PropTypes.func.isRequired,
+  },
+
   getInitialState: function () {
     return {
       devices: this.props.peripherals || [],
@@ -34,7 +38,7 @@ let EddystoneList = React.createClass({
     //Standard Actions
     let standardActions = [
       { text: 'Cancel' },
-      { text: 'Submit', onTouchTap: this._onDialogSubmit, ref: 'submit' }
+      { text: 'Submit', onTouchTap: this.props.onSubmit, ref: 'submit' }
     ];
 
     let self = this;
@@ -84,7 +88,7 @@ let EddystoneList = React.createClass({
       <div style={containerStyle}>
         {Devices}
         <Dialog
-          ref='EddystoneEdit'
+          ref='EddystoneAdd'
           autoDetectWindowHeight={true} autoScrollBodyContent={true}
           title='Edit Device'
           actions={standardActions}
@@ -97,12 +101,9 @@ let EddystoneList = React.createClass({
 
   _editDevice: function (device) {
     this.setState({ device: device } );
-    this.refs.EddystoneEdit.show();
+    this.refs.EddystoneAdd.show();
   },
 
-  _onDialogSubmit: function () {
-    console.log('_onDialogSubmit');
-  }
 });
 
 module.exports = EddystoneList;
