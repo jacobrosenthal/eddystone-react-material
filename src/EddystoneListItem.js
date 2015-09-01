@@ -47,7 +47,6 @@ let EddystoneListItem = React.createClass({
       rightIconButton={peripheral.status === 'Out of Range' ? EnableButton : DisableButton}
       onTouchTap={this.props.onRow}
       primaryText={<span>{peripheral.name} - {peripheral.status}</span>}
-      leftIcon={<DeviceBluetooth />}
       secondaryText={
         <p>
           {peripheral.type === 'url' ? url : uid }

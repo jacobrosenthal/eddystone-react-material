@@ -15,6 +15,8 @@ let Erm = require('../');
 let EddystoneAdd = Erm.EddystoneAdd;
 let EddystoneListItem = Erm.EddystoneListItem;
 
+let uuidgen = require('uuid');
+
 let containerStyle = {
   textAlign: 'left'
 };
@@ -43,15 +45,9 @@ let emptyStyle = {
 let App = React.createClass({
   getInitialState: function () {
     return {
-      peripherals: [
-      { name: 'pumpkins', status: 'Immediate', type: 'uid', namespaceId: 'ed8e1220eac38ac4f4c2', instanceId: '000000000001', tlmCount: 2, tlmPeriod: 10, battery: 89, temperature: 25, eddystone: null },
-      { name: 'pumpkins2', status: 'Out of Range', type: 'uid', namespaceId: 'ed8e1220eac38ac4f4c2', instanceId: '000000000002', tlmCount: 2, tlmPeriod: 10, battery: 98, temperature: 25, eddystone: null },
-      { name: 'pumpkins3', status: 'Far', type: 'uid', namespaceId: 'ed8e1220eac38ac4f4c2', instanceId: '000000000003', tlmCount: 2, tlmPeriod: 10, battery: 78, temperature: 24, eddystone: null },
-      { name: 'pumpkins4', status: 'Out of Range', type: 'uid', namespaceId: 'ed8e1220eac38ac4f4c2', instanceId: '000000000004', tlmCount: 2, tlmPeriod: 10, battery: 94, temperature: 24, eddystone: null },
-      { name: 'pumpkins5', status: 'Out of Range', type: 'uid', namespaceId: 'ed8e1220eac38ac4f4c2', instanceId: '000000000005', tlmCount: 2, tlmPeriod: 10, battery: 99, temperature: 26, eddystone: null },
-      { name: 'pumpkins6', status: 'Immediate', type: 'url', url: 'http://www.google.com', tlmCount: 2, tlmPeriod: 10, battery: 77, temperature: 25, eddystone: null }
-      ],
-      peripheral: {}
+      peripherals: new Map(),
+      peripheral: {},
+      uuid: ''
     };
   },
 
@@ -75,13 +71,16 @@ let App = React.createClass({
 
     let self = this;
 
-    let PeripheralsList = this.state.peripherals.map(function (peripheral, index) {
-      return (
+    let PeripheralsList = [];
+    this.state.peripherals.forEach(function (peripheral, key) {
+      let Peripheral = (
         <EddystoneListItem
         peripheral={peripheral}
-        onRow={self._onEdit.bind(null, peripheral)}
+        onRow={self._onEdit.bind(null, peripheral, key)}
         onButton={self._onChangeStatus.bind(null, peripheral)}
-        key={index}/>);
+        key={key}/>);
+
+      PeripheralsList.push(Peripheral);
     });
 
     let Peripherals = (<List>{PeripheralsList}</List>);
@@ -97,7 +96,7 @@ let App = React.createClass({
       <div style={containerStyle}>
         <AppBar style={appBarStyle} showMenuIconButton={false} title='Visual Bleno'/>
 
-        {this.state.peripherals.length > 0 ? Peripherals : EmptyPeripherals}
+        {this.state.peripherals.size > 0 ? Peripherals : EmptyPeripherals}
 
         <FloatingActionButton style={actionButtonStyle} onTouchTap={this._onAdd}>
           <ContentAdd/>
@@ -109,28 +108,49 @@ let App = React.createClass({
           title='Peripheral View'
           actions={standardActions}
           actionFocus='submit'>
-          <EddystoneAdd {...this.state.peripheral}/>
+          <EddystoneAdd onVariableChange={this._onVariableChange} {...this.state.peripheral}/>
         </Dialog>
       </div>
     );
-  },
+  }, 
 
   _onAdd: function () {
-    this.setState({ peripheral: null } );
+    this.setState({ peripheral: Erm.getNewPeripheral(), uuid: uuidgen.v4() } );
     this.refs.PeripheralView.show();
   },
 
-  _onEdit: function (peripheral) {
-    this.setState({ peripheral: peripheral } );
+  _onEdit: function (peripheral, uuid) {
+    this.setState({ peripheral: peripheral, uuid: uuid } );
     this.refs.PeripheralView.show();
   },
 
   _onDialogSubmit: function () {
-    this.refs.PeripheralView.dismiss();
+    if(Erm.isValidPeripheral(this.state.peripheral)) {
+
+      let uuid = this.state.uuid;
+      let peripherals = this.state.peripherals;
+      let peripheral = this.state.peripheral;
+
+      if(peripherals.has(uuid)) {
+        console.log('exists so deleting');
+        peripherals.delete(uuid);
+      }
+
+      peripherals.set(uuid, peripheral);
+      this.setState({ peripherals: peripherals });
+
+      this.refs.PeripheralView.dismiss();
+    }
   },
 
   _onChangeStatus: function (peripheral) {
-    console.log('not implemented yet');
+    console.log('_onChangeStatus not implemented yet');
+  },
+
+  _onVariableChange: function (variable, value) {
+    let peripheral = Erm.getValidatedPeripheral(this.state.peripheral, variable, value);
+
+    this.setState(peripheral);
   }
 
 });
