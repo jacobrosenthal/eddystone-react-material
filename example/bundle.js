@@ -22610,8 +22610,8 @@
 
 	  getInitialState: function getInitialState() {
 	    return {
-	      peripherals: [{ name: 'pumpkins', status: 'Immediate', type: 'uid', namespaceId: 'ed8e1220eac38ac4f4c2', instanceId: '000000000001', tlmCount: 2, tlmPeriod: 10, battery: 89, temperature: 25, device: null }, { name: 'pumpkins2', status: 'Out of Range', type: 'uid', namespaceId: 'ed8e1220eac38ac4f4c2', instanceId: '000000000002', tlmCount: 2, tlmPeriod: 10, battery: 98, temperature: 25, device: null }, { name: 'pumpkins3', status: 'Far', type: 'uid', namespaceId: 'ed8e1220eac38ac4f4c2', instanceId: '000000000003', tlmCount: 2, tlmPeriod: 10, battery: 78, temperature: 24, device: null }, { name: 'pumpkins4', status: 'Out of Range', type: 'uid', namespaceId: 'ed8e1220eac38ac4f4c2', instanceId: '000000000004', tlmCount: 2, tlmPeriod: 10, battery: 94, temperature: 24, device: null }, { name: 'pumpkins5', status: 'Out of Range', type: 'uid', namespaceId: 'ed8e1220eac38ac4f4c2', instanceId: '000000000005', tlmCount: 2, tlmPeriod: 10, battery: 99, temperature: 26, device: null }, { name: 'pumpkins6', status: 'Immediate', type: 'url', url: 'http://www.google.com', tlmCount: 2, tlmPeriod: 10, battery: 77, temperature: 25, device: null }],
-	      device: {}
+	      peripherals: [{ name: 'pumpkins', status: 'Immediate', type: 'uid', namespaceId: 'ed8e1220eac38ac4f4c2', instanceId: '000000000001', tlmCount: 2, tlmPeriod: 10, battery: 89, temperature: 25, eddystone: null }, { name: 'pumpkins2', status: 'Out of Range', type: 'uid', namespaceId: 'ed8e1220eac38ac4f4c2', instanceId: '000000000002', tlmCount: 2, tlmPeriod: 10, battery: 98, temperature: 25, eddystone: null }, { name: 'pumpkins3', status: 'Far', type: 'uid', namespaceId: 'ed8e1220eac38ac4f4c2', instanceId: '000000000003', tlmCount: 2, tlmPeriod: 10, battery: 78, temperature: 24, eddystone: null }, { name: 'pumpkins4', status: 'Out of Range', type: 'uid', namespaceId: 'ed8e1220eac38ac4f4c2', instanceId: '000000000004', tlmCount: 2, tlmPeriod: 10, battery: 94, temperature: 24, eddystone: null }, { name: 'pumpkins5', status: 'Out of Range', type: 'uid', namespaceId: 'ed8e1220eac38ac4f4c2', instanceId: '000000000005', tlmCount: 2, tlmPeriod: 10, battery: 99, temperature: 26, eddystone: null }, { name: 'pumpkins6', status: 'Immediate', type: 'url', url: 'http://www.google.com', tlmCount: 2, tlmPeriod: 10, battery: 77, temperature: 25, eddystone: null }],
+	      peripheral: {}
 	    };
 	  },
 
@@ -22635,72 +22635,67 @@
 
 	    var self = this;
 
-	    var devicesList = this.state.peripherals.map(function (device, index) {
+	    var PeripheralsList = this.state.peripherals.map(function (peripheral, index) {
 	      return React.createElement(EddystoneListItem, {
-	        device: device,
-	        onRow: self._onEditDevice.bind(null, device),
-	        onButton: self._onChangeStatus.bind(null, device),
+	        peripheral: peripheral,
+	        onRow: self._onEdit.bind(null, peripheral),
+	        onButton: self._onChangeStatus.bind(null, peripheral),
 	        key: index });
 	    });
 
-	    var Devices = React.createElement(
+	    var Peripherals = React.createElement(
 	      List,
 	      null,
-	      devicesList
+	      PeripheralsList
 	    );
-	    var EmptyDevices = React.createElement(
+	    var EmptyPeripherals = React.createElement(
 	      'span',
 	      { style: emptyStyle },
-	      'no devices found'
+	      'no peripheral found'
 	    );
 
 	    //Standard Actions
-	    var standardActions = [{ text: 'Cancel', onTouchTap: this._onDialogCancel }, { text: 'Submit', onTouchTap: this._onDialogSubmit, ref: 'submit' }];
+	    var standardActions = [{ text: 'Cancel' }, { text: 'Submit', onTouchTap: this._onDialogSubmit, ref: 'submit' }];
 
 	    return React.createElement(
 	      'div',
 	      { style: containerStyle },
 	      React.createElement(AppBar, { style: appBarStyle, showMenuIconButton: false, title: 'Visual Bleno' }),
-	      this.state.peripherals.length > 0 ? Devices : EmptyDevices,
+	      this.state.peripherals.length > 0 ? Peripherals : EmptyPeripherals,
 	      React.createElement(
 	        FloatingActionButton,
-	        { style: actionButtonStyle, onTouchTap: this._onAddDevice },
+	        { style: actionButtonStyle, onTouchTap: this._onAdd },
 	        React.createElement(ContentAdd, null)
 	      ),
 	      React.createElement(
 	        Dialog,
 	        {
-	          ref: 'DeviceView',
+	          ref: 'PeripheralView',
 	          autoDetectWindowHeight: true, autoScrollBodyContent: true,
-	          title: 'Add Device',
+	          title: 'Peripheral View',
 	          actions: standardActions,
 	          actionFocus: 'submit' },
-	        React.createElement(EddystoneAdd, this.state.device)
+	        React.createElement(EddystoneAdd, this.state.peripheral)
 	      )
 	    );
 	  },
 
-	  _onAddDevice: function _onAddDevice() {
-	    this.setState({ device: null });
-	    this.refs.DeviceView.show();
+	  _onAdd: function _onAdd() {
+	    this.setState({ peripheral: null });
+	    this.refs.PeripheralView.show();
 	  },
 
-	  _onEditDevice: function _onEditDevice(device) {
-	    this.setState({ device: device });
-	    this.refs.DeviceView.show();
+	  _onEdit: function _onEdit(peripheral) {
+	    this.setState({ peripheral: peripheral });
+	    this.refs.PeripheralView.show();
 	  },
 
 	  _onDialogSubmit: function _onDialogSubmit() {
-	    this.refs.DeviceView.dismiss();
+	    this.refs.PeripheralView.dismiss();
 	  },
 
-	  _onDialogCancel: function _onDialogCancel() {
-	    console.log('omomog');
-	    this.refs.DeviceView.dismiss();
-	  },
-
-	  _onChangeStatus: function _onChangeStatus(device) {
-	    console.log('dog');
+	  _onChangeStatus: function _onChangeStatus(peripheral) {
+	    console.log('not implemented yet');
 	  }
 
 	});
@@ -41802,7 +41797,7 @@
 	  propTypes: {
 	    onButton: React.PropTypes.func.isRequired,
 	    onRow: React.PropTypes.func.isRequired,
-	    device: React.PropTypes.object.isRequired
+	    peripheral: React.PropTypes.object.isRequired
 	  },
 
 	  childContextTypes: {
@@ -41816,9 +41811,9 @@
 	  },
 
 	  render: function render() {
-	    var device = this.props.device;
-	    var url = 'URL: ' + device.url;
-	    var uid = 'UID: ' + device.namespaceId + device.instanceId;
+	    var peripheral = this.props.peripheral;
+	    var url = 'URL: ' + peripheral.url;
+	    var uid = 'UID: ' + peripheral.namespaceId + peripheral.instanceId;
 
 	    var EnableButton = React.createElement(
 	      IconButton,
@@ -41837,25 +41832,25 @@
 	    );
 
 	    return React.createElement(ListItem, {
-	      rightIconButton: device.status === 'Out of Range' ? EnableButton : DisableButton,
+	      rightIconButton: peripheral.status === 'Out of Range' ? EnableButton : DisableButton,
 	      onTouchTap: this.props.onRow,
 	      primaryText: React.createElement(
 	        'span',
 	        null,
-	        device.name,
+	        peripheral.name,
 	        ' - ',
-	        device.status
+	        peripheral.status
 	      ),
 	      leftIcon: React.createElement(DeviceBluetooth, null),
 	      secondaryText: React.createElement(
 	        'p',
 	        null,
-	        device.type === 'url' ? url : uid,
+	        peripheral.type === 'url' ? url : uid,
 	        React.createElement('br', null),
 	        'battery:',
-	        device.battery,
+	        peripheral.battery,
 	        ' - temp:',
-	        device.temperature
+	        peripheral.temperature
 	      ),
 	      secondaryTextLines: 2 });
 	  }

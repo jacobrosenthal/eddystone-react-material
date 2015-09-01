@@ -12,7 +12,7 @@ let EddystoneListItem = React.createClass({
   propTypes: {
     onButton: React.PropTypes.func.isRequired,
     onRow: React.PropTypes.func.isRequired,
-    device: React.PropTypes.object.isRequired
+    peripheral: React.PropTypes.object.isRequired
   },
 
   childContextTypes: {
@@ -26,9 +26,9 @@ let EddystoneListItem = React.createClass({
   },
 
   render: function () {
-    let device = this.props.device;
-    let url = 'URL: ' + device.url;
-    let uid = 'UID: ' + device.namespaceId + device.instanceId;
+    let peripheral = this.props.peripheral;
+    let url = 'URL: ' + peripheral.url;
+    let uid = 'UID: ' + peripheral.namespaceId + peripheral.instanceId;
 
     let EnableButton = (<IconButton
                     tooltip="Enable"
@@ -44,15 +44,15 @@ let EddystoneListItem = React.createClass({
 
     return (
       <ListItem
-      rightIconButton={device.status === 'Out of Range' ? EnableButton : DisableButton}
+      rightIconButton={peripheral.status === 'Out of Range' ? EnableButton : DisableButton}
       onTouchTap={this.props.onRow}
-      primaryText={<span>{device.name} - {device.status}</span>}
+      primaryText={<span>{peripheral.name} - {peripheral.status}</span>}
       leftIcon={<DeviceBluetooth />}
       secondaryText={
         <p>
-          {device.type === 'url' ? url : uid }
+          {peripheral.type === 'url' ? url : uid }
           <br/>
-          battery:{device.battery} - temp:{device.temperature}
+          battery:{peripheral.battery} - temp:{peripheral.temperature}
         </p>
       }
       secondaryTextLines={2}/>
