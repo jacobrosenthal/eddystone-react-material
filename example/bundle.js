@@ -56,7 +56,7 @@
 	var React = __webpack_require__(2);
 	var App = __webpack_require__(175);
 
-	var injectTapEventPlugin = __webpack_require__(322);
+	var injectTapEventPlugin = __webpack_require__(327);
 
 	//Needed for React Developer Tools
 	window.React = React;
@@ -22564,6 +22564,8 @@
 
 	'use strict';
 
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
 	var React = __webpack_require__(2);
 	var mui = __webpack_require__(176);
 	var ThemeManager = new mui.Styles.ThemeManager();
@@ -22580,6 +22582,8 @@
 	var Erm = __webpack_require__(316);
 	var EddystoneAdd = Erm.EddystoneAdd;
 	var EddystoneListItem = Erm.EddystoneListItem;
+
+	var uuidgen = __webpack_require__(325);
 
 	var containerStyle = {
 	  textAlign: 'left'
@@ -22610,8 +22614,9 @@
 
 	  getInitialState: function getInitialState() {
 	    return {
-	      peripherals: [{ name: 'pumpkins', status: 'Immediate', type: 'uid', namespaceId: 'ed8e1220eac38ac4f4c2', instanceId: '000000000001', tlmCount: 2, tlmPeriod: 10, battery: 89, temperature: 25, eddystone: null }, { name: 'pumpkins2', status: 'Out of Range', type: 'uid', namespaceId: 'ed8e1220eac38ac4f4c2', instanceId: '000000000002', tlmCount: 2, tlmPeriod: 10, battery: 98, temperature: 25, eddystone: null }, { name: 'pumpkins3', status: 'Far', type: 'uid', namespaceId: 'ed8e1220eac38ac4f4c2', instanceId: '000000000003', tlmCount: 2, tlmPeriod: 10, battery: 78, temperature: 24, eddystone: null }, { name: 'pumpkins4', status: 'Out of Range', type: 'uid', namespaceId: 'ed8e1220eac38ac4f4c2', instanceId: '000000000004', tlmCount: 2, tlmPeriod: 10, battery: 94, temperature: 24, eddystone: null }, { name: 'pumpkins5', status: 'Out of Range', type: 'uid', namespaceId: 'ed8e1220eac38ac4f4c2', instanceId: '000000000005', tlmCount: 2, tlmPeriod: 10, battery: 99, temperature: 26, eddystone: null }, { name: 'pumpkins6', status: 'Immediate', type: 'url', url: 'http://www.google.com', tlmCount: 2, tlmPeriod: 10, battery: 77, temperature: 25, eddystone: null }],
-	      peripheral: {}
+	      peripherals: new Map(),
+	      peripheral: {},
+	      uuid: ''
 	    };
 	  },
 
@@ -22635,12 +22640,15 @@
 
 	    var self = this;
 
-	    var PeripheralsList = this.state.peripherals.map(function (peripheral, index) {
-	      return React.createElement(EddystoneListItem, {
+	    var PeripheralsList = [];
+	    this.state.peripherals.forEach(function (peripheral, key) {
+	      var Peripheral = React.createElement(EddystoneListItem, {
 	        peripheral: peripheral,
-	        onRow: self._onEdit.bind(null, peripheral),
+	        onRow: self._onEdit.bind(null, peripheral, key),
 	        onButton: self._onChangeStatus.bind(null, peripheral),
-	        key: index });
+	        key: key });
+
+	      PeripheralsList.push(Peripheral);
 	    });
 
 	    var Peripherals = React.createElement(
@@ -22661,7 +22669,7 @@
 	      'div',
 	      { style: containerStyle },
 	      React.createElement(AppBar, { style: appBarStyle, showMenuIconButton: false, title: 'Visual Bleno' }),
-	      this.state.peripherals.length > 0 ? Peripherals : EmptyPeripherals,
+	      this.state.peripherals.size > 0 ? Peripherals : EmptyPeripherals,
 	      React.createElement(
 	        FloatingActionButton,
 	        { style: actionButtonStyle, onTouchTap: this._onAdd },
@@ -22675,27 +22683,48 @@
 	          title: 'Peripheral View',
 	          actions: standardActions,
 	          actionFocus: 'submit' },
-	        React.createElement(EddystoneAdd, this.state.peripheral)
+	        React.createElement(EddystoneAdd, _extends({ onVariableChange: this._onVariableChange }, this.state.peripheral))
 	      )
 	    );
 	  },
 
 	  _onAdd: function _onAdd() {
-	    this.setState({ peripheral: null });
+	    this.setState({ peripheral: Erm.getNewPeripheral(), uuid: uuidgen.v4() });
 	    this.refs.PeripheralView.show();
 	  },
 
-	  _onEdit: function _onEdit(peripheral) {
-	    this.setState({ peripheral: peripheral });
+	  _onEdit: function _onEdit(peripheral, uuid) {
+	    this.setState({ peripheral: peripheral, uuid: uuid });
 	    this.refs.PeripheralView.show();
 	  },
 
 	  _onDialogSubmit: function _onDialogSubmit() {
-	    this.refs.PeripheralView.dismiss();
+	    if (Erm.isValidPeripheral(this.state.peripheral)) {
+
+	      var uuid = this.state.uuid;
+	      var peripherals = this.state.peripherals;
+	      var peripheral = this.state.peripheral;
+
+	      if (peripherals.has(uuid)) {
+	        console.log('exists so deleting');
+	        peripherals['delete'](uuid);
+	      }
+
+	      peripherals.set(uuid, peripheral);
+	      this.setState({ peripherals: peripherals });
+
+	      this.refs.PeripheralView.dismiss();
+	    }
 	  },
 
 	  _onChangeStatus: function _onChangeStatus(peripheral) {
-	    console.log('not implemented yet');
+	    console.log('_onChangeStatus not implemented yet');
+	  },
+
+	  _onVariableChange: function _onVariableChange(variable, value) {
+	    var peripheral = Erm.getValidatedPeripheral(this.state.peripheral, variable, value);
+
+	    this.setState(peripheral);
 	  }
 
 	});
@@ -41253,8 +41282,11 @@
 
 	module.exports = {
 	  EddystoneAdd: __webpack_require__(317),
-	  EddystoneListItem: __webpack_require__(319)
-	}
+	  EddystoneListItem: __webpack_require__(318),
+	  getNewPeripheral: __webpack_require__(321),
+	  getValidatedPeripheral: __webpack_require__(323),
+	  isValidPeripheral: __webpack_require__(324)
+	};
 
 
 /***/ },
@@ -41271,8 +41303,6 @@
 	var SelectField = mui.SelectField;
 	var Tabs = mui.Tabs;
 	var Tab = mui.Tab;
-
-	var randomWords = __webpack_require__(318);
 
 	var deviceStates = [{
 	  display: 'Out of Range',
@@ -41291,22 +41321,8 @@
 	var EddystoneAdd = React.createClass({
 	  displayName: 'EddystoneAdd',
 
-	  getInitialState: function getInitialState() {
-	    return {
-	      name: this.props.name || randomWords({ exactly: 2, join: ' ' }),
-	      status: this.props.status || 'Out of Range',
-	      nameErrorText: '',
-	      namespaceIdError: '',
-	      instanceIdError: '',
-	      tlmCount: this.props.tlmCount || 2,
-	      tlmPeriod: this.props.tlmPeriod || 10,
-	      namespaceId: this.props.namespaceId || 'ed8e1220eac38ac4f4c2',
-	      instanceId: this.props.instanceId || '000000000000',
-	      url: this.props.url || 'http://',
-	      type: this.props.type || 'url',
-	      temperature: this.props.temperature || '25',
-	      battery: this.props.battery || '100'
-	    };
+	  propTypes: {
+	    onVariableChange: React.PropTypes.func.isRequired
 	  },
 
 	  childContextTypes: {
@@ -41323,166 +41339,285 @@
 
 	    return React.createElement(
 	      Tabs,
-	      { value: this.state.type },
+	      { value: this.props.type },
 	      React.createElement(
 	        Tab,
-	        { onActive: this._onActive, label: 'url', value: 'url' },
+	        { onActive: this._onActive.bind(null, 'type'), label: 'url', value: 'url' },
 	        React.createElement(TextField, {
 	          floatingLabelText: 'Device Name',
-	          value: this.state.name,
-	          errorText: this.state.nameErrorText,
-	          onChange: this._onNameChange,
-	          ref: 'deviceName' }),
+	          value: this.props.name,
+	          errorText: this.props.nameErrorText,
+	          onChange: this._onTextField.bind(null, 'name') }),
 	        React.createElement(SelectField, {
 	          floatingLabelText: 'Device State',
-	          value: this.state.status,
-	          onChange: this._onStatusChange,
+	          value: this.props.status,
 	          valueMember: 'value',
 	          displayMember: 'display',
-	          menuItems: deviceStates }),
+	          menuItems: deviceStates,
+	          onChange: this._onSelectField.bind(null, 'status') }),
 	        React.createElement(TextField, {
 	          floatingLabelText: 'URL',
-	          value: this.state.url,
-	          onChange: this._onURLChange }),
+	          value: this.props.url,
+	          errorText: this.props.urlError,
+	          onChange: this._onTextField.bind(null, 'url') }),
 	        React.createElement(TextField, {
 	          floatingLabelText: 'Telemetry Count',
-	          value: this.state.tlmCount,
-	          errorText: this.state.telemetryCountError,
-	          onChange: this._onTelemetryCount }),
+	          value: this.props.tlmCount,
+	          errorText: this.props.telemetryCountError,
+	          onChange: this._onTextField.bind(null, 'tlmCount') }),
 	        React.createElement(TextField, {
 	          floatingLabelText: 'Telemetry Period',
-	          value: this.state.tlmPeriod,
-	          errorText: this.state.telemetryPeriodError,
-	          onChange: this._onTelemetryPeriod }),
+	          value: this.props.tlmPeriod,
+	          errorText: this.props.telemetryPeriodError,
+	          onChange: this._onTextField.bind(null, 'tlmPeriod') }),
 	        React.createElement(TextField, {
 	          floatingLabelText: 'Battery',
-	          value: this.state.battery,
-	          onChange: this._onBattery }),
+	          value: this.props.battery,
+	          onChange: this._onTextField.bind(null, 'battery') }),
 	        React.createElement('br', null),
 	        React.createElement(TextField, {
 	          floatingLabelText: 'Temperature',
-	          value: this.state.temperature,
-	          onChange: this._onTemperature })
+	          value: this.props.temperature,
+	          onChange: this._onTextField.bind(null, 'temperature') })
 	      ),
 	      React.createElement(
 	        Tab,
-	        { onActive: this._onActive, label: 'uid', value: 'uid' },
+	        { onActive: this._onActive.bind(null, 'type'), label: 'uid', value: 'uid' },
 	        React.createElement(TextField, {
 	          floatingLabelText: 'Device Name',
-	          value: this.state.name,
-	          errorText: this.state.nameErrorText,
-	          onChange: this._onNameChange,
-	          ref: 'deviceName' }),
+	          value: this.props.name,
+	          errorText: this.props.nameErrorText,
+	          onChange: this._onTextField.bind(null, 'name') }),
 	        React.createElement(SelectField, {
 	          floatingLabelText: 'Device State',
-	          value: this.state.status,
-	          onChange: this._onStatusChange,
+	          value: this.props.status,
 	          valueMember: 'value',
 	          displayMember: 'display',
-	          menuItems: deviceStates }),
+	          menuItems: deviceStates,
+	          onChange: this._onSelectField.bind(null, 'status') }),
 	        React.createElement(TextField, {
 	          floatingLabelText: 'Namespace Id',
-	          value: this.state.namespaceId,
-	          errorText: this.state.namespaceIdError,
-	          onChange: this._onNamespaceIdChange }),
+	          value: this.props.namespaceId,
+	          errorText: this.props.namespaceIdError,
+	          onChange: this._onTextField.bind(null, 'namespaceId') }),
 	        React.createElement(TextField, {
 	          floatingLabelText: 'Instance Id',
-	          value: this.state.instanceId,
-	          errorText: this.state.instanceIdError,
-	          onChange: this._onInstanceIdChange }),
+	          value: this.props.instanceId,
+	          errorText: this.props.instanceIdError,
+	          onChange: this._onTextField.bind(null, 'instanceId') }),
 	        React.createElement(TextField, {
 	          floatingLabelText: 'Telemetry Count',
-	          value: this.state.tlmCount,
-	          errorText: this.state.telemetryCountError,
-	          onChange: this._onTelemetryCount }),
+	          value: this.props.tlmCount,
+	          errorText: this.props.tlmCountError,
+	          onChange: this._onTextField.bind(null, 'tlmCount') }),
 	        React.createElement(TextField, {
 	          floatingLabelText: 'Telemetry Period',
-	          value: this.state.tlmPeriod,
-	          errorText: this.state.telemetryPeriodError,
-	          onChange: this._onTelemetryPeriod }),
+	          value: this.props.tlmPeriod,
+	          errorText: this.props.tlmPeriodError,
+	          onChange: this._onTextField.bind(null, 'tlmPeriod') }),
 	        React.createElement(TextField, {
 	          floatingLabelText: 'Battery',
-	          value: this.state.battery,
-	          onChange: this._onBattery }),
+	          value: this.props.battery,
+	          errorText: this.props.batteryError,
+	          onChange: this._onTextField.bind(null, 'battery') }),
 	        React.createElement('br', null),
 	        React.createElement(TextField, {
 	          floatingLabelText: 'Temperature',
-	          value: this.state.temperature,
-	          onChange: this._onTemperature }),
+	          value: this.props.temperature,
+	          errorText: this.props.temperatureError,
+	          onChange: this._onTextField.bind(null, 'temperature') }),
 	        React.createElement('br', null)
 	      )
 	    );
 	  },
 
-	  _onNameChange: function _onNameChange(event) {
-	    if (!event.target.value) {
-	      this.setState({ name: event.target.value, nameErrorText: 'You must name your Device' });
-	    } else {
-	      this.setState({ name: event.target.value, nameErrorText: '' });
-	    }
+	  _onTextField: function _onTextField(variable, event) {
+	    this.props.onVariableChange(variable, event.target.value);
 	  },
 
-	  _onStatusChange: function _onStatusChange(event, selectedIndex, menuItem) {
-	    this.setState({ status: menuItem.text });
+	  _onSelectField: function _onSelectField(variable, event, selectedIndex, menuItem) {
+	    this.props.onVariableChange(menuItem.text);
 	  },
 
-	  _onTelemetryCount: function _onTelemetryCount(event) {
-	    if (!isNumber(event.target.value)) {
-	      this.setState({ tlmCount: event.target.value, telemetryCountError: 'Must be a number' });
-	    } else {
-	      this.setState({ tlmCount: event.target.value, telemetryCountError: '' });
-	    }
-	  },
-
-	  _onTelemetryPeriod: function _onTelemetryPeriod(event) {
-	    if (!isNumber(event.target.value)) {
-	      this.setState({ tlmPeriod: event.target.value, telemetryPeriodError: 'Must be a number' });
-	    } else {
-	      this.setState({ tlmPeriod: event.target.value, telemetryPeriodError: '' });
-	    }
-	  },
-
-	  _onURLChange: function _onURLChange(event) {
-	    this.setState({ url: event.target.value });
-	  },
-
-	  _onNamespaceIdChange: function _onNamespaceIdChange(event) {
-	    if (!event.target.value || event.target.value.length !== 20) {
-	      this.setState({ namespaceId: event.target.value, namespaceIdError: 'Must be 12 digits hex number' });
-	    } else {
-	      this.setState({ namespaceId: event.target.value, namespaceIdError: '' });
-	    }
-	  },
-
-	  _onInstanceIdChange: function _onInstanceIdChange(event) {
-	    if (!event.target.value || event.target.value.length !== 12) {
-	      this.setState({ instanceId: event.target.value, instanceIdError: 'Must be 12 digits hex number' });
-	    } else {
-	      this.setState({ instanceId: event.target.value, instanceIdError: '' });
-	    }
-	  },
-
-	  _onBattery: function _onBattery(event) {
-	    this.setState({ battery: event.target.value });
-	  },
-
-	  _onTemperature: function _onTemperature(event) {
-	    this.setState({ temperature: event.target.value });
-	  },
-
-	  _onActive: function _onActive(tab) {
-	    this.setState({ type: tab.props.label });
+	  _onActive: function _onActive(variable, tab) {
+	    this.props.onVariableChange(variable, tab.props.label);
 	  }
-	});
 
-	function isNumber(n) {
-	  return !isNaN(parseFloat(n)) && isFinite(n);
-	}
+	});
 
 	module.exports = EddystoneAdd;
 
 /***/ },
 /* 318 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var React = __webpack_require__(2);
+	var mui = __webpack_require__(176);
+	var ThemeManager = new mui.Styles.ThemeManager();
+
+	var ListItem = mui.ListItem;
+	var IconButton = mui.IconButton;
+
+	var DeviceBluetooth = __webpack_require__(319);
+	var DeviceBluetoothDisabled = __webpack_require__(320);
+
+	var EddystoneListItem = React.createClass({
+	  displayName: 'EddystoneListItem',
+
+	  propTypes: {
+	    onButton: React.PropTypes.func.isRequired,
+	    onRow: React.PropTypes.func.isRequired,
+	    peripheral: React.PropTypes.object.isRequired
+	  },
+
+	  childContextTypes: {
+	    muiTheme: React.PropTypes.object
+	  },
+
+	  getChildContext: function getChildContext() {
+	    return {
+	      muiTheme: ThemeManager.getCurrentTheme()
+	    };
+	  },
+
+	  render: function render() {
+	    var peripheral = this.props.peripheral;
+	    var url = 'URL: ' + peripheral.url;
+	    var uid = 'UID: ' + peripheral.namespaceId + peripheral.instanceId;
+
+	    var EnableButton = React.createElement(
+	      IconButton,
+	      {
+	        tooltip: 'Enable',
+	        onTouchTap: this.props.onButton },
+	      React.createElement(DeviceBluetooth, null)
+	    );
+
+	    var DisableButton = React.createElement(
+	      IconButton,
+	      {
+	        tooltip: 'Disable',
+	        onTouchTap: this.props.onButton },
+	      React.createElement(DeviceBluetoothDisabled, null)
+	    );
+
+	    return React.createElement(ListItem, {
+	      rightIconButton: peripheral.status === 'Out of Range' ? EnableButton : DisableButton,
+	      onTouchTap: this.props.onRow,
+	      primaryText: React.createElement(
+	        'span',
+	        null,
+	        peripheral.name,
+	        ' - ',
+	        peripheral.status
+	      ),
+	      secondaryText: React.createElement(
+	        'p',
+	        null,
+	        peripheral.type === 'url' ? url : uid,
+	        React.createElement('br', null),
+	        'battery:',
+	        peripheral.battery,
+	        ' - temp:',
+	        peripheral.temperature
+	      ),
+	      secondaryTextLines: 2 });
+	  }
+
+	});
+
+	module.exports = EddystoneListItem;
+
+/***/ },
+/* 319 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var React = __webpack_require__(2);
+	var PureRenderMixin = React.addons.PureRenderMixin;
+	var SvgIcon = __webpack_require__(202);
+
+	var DeviceBluetooth = React.createClass({
+	  displayName: 'DeviceBluetooth',
+
+	  mixins: [PureRenderMixin],
+
+	  render: function render() {
+	    return React.createElement(
+	      SvgIcon,
+	      this.props,
+	      React.createElement('path', { d: 'M17.71 7.71L12 2h-1v7.59L6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 11 14.41V22h1l5.71-5.71-4.3-4.29 4.3-4.29zM13 5.83l1.88 1.88L13 9.59V5.83zm1.88 10.46L13 18.17v-3.76l1.88 1.88z' })
+	    );
+	  }
+
+	});
+
+	module.exports = DeviceBluetooth;
+
+/***/ },
+/* 320 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var React = __webpack_require__(2);
+	var PureRenderMixin = React.addons.PureRenderMixin;
+	var SvgIcon = __webpack_require__(202);
+
+	var DeviceBluetoothDisabled = React.createClass({
+	  displayName: 'DeviceBluetoothDisabled',
+
+	  mixins: [PureRenderMixin],
+
+	  render: function render() {
+	    return React.createElement(
+	      SvgIcon,
+	      this.props,
+	      React.createElement('path', { d: 'M13 5.83l1.88 1.88-1.6 1.6 1.41 1.41 3.02-3.02L12 2h-1v5.03l2 2v-3.2zM5.41 4L4 5.41 10.59 12 5 17.59 6.41 19 11 14.41V22h1l4.29-4.29 2.3 2.29L20 18.59 5.41 4zM13 18.17v-3.76l1.88 1.88L13 18.17z' })
+	    );
+	  }
+
+	});
+
+	module.exports = DeviceBluetoothDisabled;
+
+/***/ },
+/* 321 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var randomWords = __webpack_require__(322);
+
+	module.exports = function getNewPeripheral() {
+	  return {
+	    name: randomWords({ exactly: 2, join: ' ' }),
+	    status: 'Out of Range',
+	    tlmCount: 2,
+	    tlmPeriod: 10,
+	    namespaceId: '00010203040506070809',
+	    instanceId: 'aabbccddeeff',
+	    url: 'http://',
+	    type: 'url',
+	    temperature: 25,
+	    battery: 100,
+	    nameErrorText: '',
+	    namespaceIdError: '',
+	    instanceIdError: '',
+	    tlmPeriodError: '',
+	    tlmCountError: '',
+	    batteryError: '',
+	    temperatureError: '',
+	    urlError: '',
+	    eddystone: null
+	  };
+	};
+
+/***/ },
+/* 322 */
 /***/ function(module, exports) {
 
 	var wordList = [
@@ -41776,145 +41911,332 @@
 
 
 /***/ },
-/* 319 */
-/***/ function(module, exports, __webpack_require__) {
+/* 323 */
+/***/ function(module, exports) {
 
 	'use strict';
 
-	var React = __webpack_require__(2);
-	var mui = __webpack_require__(176);
-	var ThemeManager = new mui.Styles.ThemeManager();
+	module.exports = function (peripheral, variable, value) {
 
-	var ListItem = mui.ListItem;
-	var IconButton = mui.IconButton;
-
-	var DeviceBluetooth = __webpack_require__(320);
-	var DeviceBluetoothDisabled = __webpack_require__(321);
-
-	var EddystoneListItem = React.createClass({
-	  displayName: 'EddystoneListItem',
-
-	  propTypes: {
-	    onButton: React.PropTypes.func.isRequired,
-	    onRow: React.PropTypes.func.isRequired,
-	    peripheral: React.PropTypes.object.isRequired
-	  },
-
-	  childContextTypes: {
-	    muiTheme: React.PropTypes.object
-	  },
-
-	  getChildContext: function getChildContext() {
-	    return {
-	      muiTheme: ThemeManager.getCurrentTheme()
-	    };
-	  },
-
-	  render: function render() {
-	    var peripheral = this.props.peripheral;
-	    var url = 'URL: ' + peripheral.url;
-	    var uid = 'UID: ' + peripheral.namespaceId + peripheral.instanceId;
-
-	    var EnableButton = React.createElement(
-	      IconButton,
-	      {
-	        tooltip: 'Enable',
-	        onTouchTap: this.props.onButton },
-	      React.createElement(DeviceBluetooth, null)
-	    );
-
-	    var DisableButton = React.createElement(
-	      IconButton,
-	      {
-	        tooltip: 'Disable',
-	        onTouchTap: this.props.onButton },
-	      React.createElement(DeviceBluetoothDisabled, null)
-	    );
-
-	    return React.createElement(ListItem, {
-	      rightIconButton: peripheral.status === 'Out of Range' ? EnableButton : DisableButton,
-	      onTouchTap: this.props.onRow,
-	      primaryText: React.createElement(
-	        'span',
-	        null,
-	        peripheral.name,
-	        ' - ',
-	        peripheral.status
-	      ),
-	      leftIcon: React.createElement(DeviceBluetooth, null),
-	      secondaryText: React.createElement(
-	        'p',
-	        null,
-	        peripheral.type === 'url' ? url : uid,
-	        React.createElement('br', null),
-	        'battery:',
-	        peripheral.battery,
-	        ' - temp:',
-	        peripheral.temperature
-	      ),
-	      secondaryTextLines: 2 });
+	  if (variable === 'name') {
+	    if (!value) {
+	      peripheral.nameErrorText = 'You must name your Device';
+	    } else {
+	      peripheral.nameErrorText = '';
+	    }
 	  }
 
-	});
+	  if (variable === 'tlmCount') {
+	    if (!isNumber(value)) {
+	      peripheral.tlmCountError = 'Must be a number';
+	    } else {
+	      peripheral.tlmCountError = '';
+	    }
+	  }
 
-	module.exports = EddystoneListItem;
+	  if (variable === 'tlmPeriod') {
+	    if (!isNumber(value)) {
+	      peripheral.tlmPeriodError = 'Must be a number';
+	    } else {
+	      peripheral.tlmPeriodError = '';
+	    }
+	  }
+
+	  if (variable === 'namespaceId') {
+	    if (!value || value.length !== 20) {
+	      peripheral.namespaceIdError = 'Must be 20 digits hex number';
+	    } else {
+	      peripheral.namespaceIdError = '';
+	    }
+	  }
+
+	  if (variable === 'instanceId') {
+	    if (!value || value.length !== 12) {
+	      peripheral.instanceIdError = 'Must be 12 digits hex number';
+	    } else {
+	      peripheral.instanceIdError = '';
+	    }
+	  }
+
+	  if (variable === 'battery') {
+	    if (!isNumber(value)) {
+	      peripheral.batteryError = 'Must be a number';
+	    } else {
+	      peripheral.batteryError = '';
+	    }
+	  }
+
+	  if (variable === 'temperature') {
+	    if (!isNumber(value)) {
+	      peripheral.temperatureError = 'Must be a number';
+	    } else {
+	      peripheral.temperatureError = '';
+	    }
+	  }
+
+	  if (variable === 'url') {
+	    if (!value) {
+	      peripheral.urlError = 'You must set a url';
+	    } else {
+	      peripheral.urlError = '';
+	    }
+	  }
+
+	  // status and type unremarkable
+
+	  peripheral[variable] = value;
+	  return peripheral;
+	};
+
+	function isNumber(n) {
+	  return !isNaN(parseFloat(n)) && isFinite(n);
+	}
 
 /***/ },
-/* 320 */
-/***/ function(module, exports, __webpack_require__) {
+/* 324 */
+/***/ function(module, exports) {
 
 	'use strict';
 
-	var React = __webpack_require__(2);
-	var PureRenderMixin = React.addons.PureRenderMixin;
-	var SvgIcon = __webpack_require__(202);
+	module.exports = function (peripheral) {
 
-	var DeviceBluetooth = React.createClass({
-	  displayName: 'DeviceBluetooth',
-
-	  mixins: [PureRenderMixin],
-
-	  render: function render() {
-	    return React.createElement(
-	      SvgIcon,
-	      this.props,
-	      React.createElement('path', { d: 'M17.71 7.71L12 2h-1v7.59L6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 11 14.41V22h1l5.71-5.71-4.3-4.29 4.3-4.29zM13 5.83l1.88 1.88L13 9.59V5.83zm1.88 10.46L13 18.17v-3.76l1.88 1.88z' })
-	    );
+	  if (peripheral.type === 'url' && !peripheral.nameErrorText && !peripheral.urlEror && !peripheral.tlmPeriodError && !peripheral.tlmCountError && !peripheral.batteryError && !peripheral.temperatureError) {
+	    return true;
+	  } else if (peripheral.type === 'uid' && !peripheral.nameErrorText && !peripheral.namespaceIdError && !peripheral.instanceIdError && !peripheral.tlmPeriodError && !peripheral.tlmCountError && !peripheral.batteryError && !peripheral.temperatureError) {
+	    return false;
 	  }
-
-	});
-
-	module.exports = DeviceBluetooth;
+	  return false;
+	};
 
 /***/ },
-/* 321 */
+/* 325 */
 /***/ function(module, exports, __webpack_require__) {
 
-	'use strict';
+	//     uuid.js
+	//
+	//     Copyright (c) 2010-2012 Robert Kieffer
+	//     MIT License - http://opensource.org/licenses/mit-license.php
 
-	var React = __webpack_require__(2);
-	var PureRenderMixin = React.addons.PureRenderMixin;
-	var SvgIcon = __webpack_require__(202);
+	// Unique ID creation requires a high quality random # generator.  We feature
+	// detect to determine the best RNG source, normalizing to a function that
+	// returns 128-bits of randomness, since that's what's usually required
+	var _rng = __webpack_require__(326);
 
-	var DeviceBluetoothDisabled = React.createClass({
-	  displayName: 'DeviceBluetoothDisabled',
+	// Maps for number <-> hex string conversion
+	var _byteToHex = [];
+	var _hexToByte = {};
+	for (var i = 0; i < 256; i++) {
+	  _byteToHex[i] = (i + 0x100).toString(16).substr(1);
+	  _hexToByte[_byteToHex[i]] = i;
+	}
 
-	  mixins: [PureRenderMixin],
+	// **`parse()` - Parse a UUID into it's component bytes**
+	function parse(s, buf, offset) {
+	  var i = (buf && offset) || 0, ii = 0;
 
-	  render: function render() {
-	    return React.createElement(
-	      SvgIcon,
-	      this.props,
-	      React.createElement('path', { d: 'M13 5.83l1.88 1.88-1.6 1.6 1.41 1.41 3.02-3.02L12 2h-1v5.03l2 2v-3.2zM5.41 4L4 5.41 10.59 12 5 17.59 6.41 19 11 14.41V22h1l4.29-4.29 2.3 2.29L20 18.59 5.41 4zM13 18.17v-3.76l1.88 1.88L13 18.17z' })
-	    );
+	  buf = buf || [];
+	  s.toLowerCase().replace(/[0-9a-f]{2}/g, function(oct) {
+	    if (ii < 16) { // Don't overflow!
+	      buf[i + ii++] = _hexToByte[oct];
+	    }
+	  });
+
+	  // Zero out remaining bytes if string was short
+	  while (ii < 16) {
+	    buf[i + ii++] = 0;
 	  }
 
-	});
+	  return buf;
+	}
 
-	module.exports = DeviceBluetoothDisabled;
+	// **`unparse()` - Convert UUID byte array (ala parse()) into a string**
+	function unparse(buf, offset) {
+	  var i = offset || 0, bth = _byteToHex;
+	  return  bth[buf[i++]] + bth[buf[i++]] +
+	          bth[buf[i++]] + bth[buf[i++]] + '-' +
+	          bth[buf[i++]] + bth[buf[i++]] + '-' +
+	          bth[buf[i++]] + bth[buf[i++]] + '-' +
+	          bth[buf[i++]] + bth[buf[i++]] + '-' +
+	          bth[buf[i++]] + bth[buf[i++]] +
+	          bth[buf[i++]] + bth[buf[i++]] +
+	          bth[buf[i++]] + bth[buf[i++]];
+	}
+
+	// **`v1()` - Generate time-based UUID**
+	//
+	// Inspired by https://github.com/LiosK/UUID.js
+	// and http://docs.python.org/library/uuid.html
+
+	// random #'s we need to init node and clockseq
+	var _seedBytes = _rng();
+
+	// Per 4.5, create and 48-bit node id, (47 random bits + multicast bit = 1)
+	var _nodeId = [
+	  _seedBytes[0] | 0x01,
+	  _seedBytes[1], _seedBytes[2], _seedBytes[3], _seedBytes[4], _seedBytes[5]
+	];
+
+	// Per 4.2.2, randomize (14 bit) clockseq
+	var _clockseq = (_seedBytes[6] << 8 | _seedBytes[7]) & 0x3fff;
+
+	// Previous uuid creation time
+	var _lastMSecs = 0, _lastNSecs = 0;
+
+	// See https://github.com/broofa/node-uuid for API details
+	function v1(options, buf, offset) {
+	  var i = buf && offset || 0;
+	  var b = buf || [];
+
+	  options = options || {};
+
+	  var clockseq = options.clockseq !== undefined ? options.clockseq : _clockseq;
+
+	  // UUID timestamps are 100 nano-second units since the Gregorian epoch,
+	  // (1582-10-15 00:00).  JSNumbers aren't precise enough for this, so
+	  // time is handled internally as 'msecs' (integer milliseconds) and 'nsecs'
+	  // (100-nanoseconds offset from msecs) since unix epoch, 1970-01-01 00:00.
+	  var msecs = options.msecs !== undefined ? options.msecs : new Date().getTime();
+
+	  // Per 4.2.1.2, use count of uuid's generated during the current clock
+	  // cycle to simulate higher resolution clock
+	  var nsecs = options.nsecs !== undefined ? options.nsecs : _lastNSecs + 1;
+
+	  // Time since last uuid creation (in msecs)
+	  var dt = (msecs - _lastMSecs) + (nsecs - _lastNSecs)/10000;
+
+	  // Per 4.2.1.2, Bump clockseq on clock regression
+	  if (dt < 0 && options.clockseq === undefined) {
+	    clockseq = clockseq + 1 & 0x3fff;
+	  }
+
+	  // Reset nsecs if clock regresses (new clockseq) or we've moved onto a new
+	  // time interval
+	  if ((dt < 0 || msecs > _lastMSecs) && options.nsecs === undefined) {
+	    nsecs = 0;
+	  }
+
+	  // Per 4.2.1.2 Throw error if too many uuids are requested
+	  if (nsecs >= 10000) {
+	    throw new Error('uuid.v1(): Can\'t create more than 10M uuids/sec');
+	  }
+
+	  _lastMSecs = msecs;
+	  _lastNSecs = nsecs;
+	  _clockseq = clockseq;
+
+	  // Per 4.1.4 - Convert from unix epoch to Gregorian epoch
+	  msecs += 12219292800000;
+
+	  // `time_low`
+	  var tl = ((msecs & 0xfffffff) * 10000 + nsecs) % 0x100000000;
+	  b[i++] = tl >>> 24 & 0xff;
+	  b[i++] = tl >>> 16 & 0xff;
+	  b[i++] = tl >>> 8 & 0xff;
+	  b[i++] = tl & 0xff;
+
+	  // `time_mid`
+	  var tmh = (msecs / 0x100000000 * 10000) & 0xfffffff;
+	  b[i++] = tmh >>> 8 & 0xff;
+	  b[i++] = tmh & 0xff;
+
+	  // `time_high_and_version`
+	  b[i++] = tmh >>> 24 & 0xf | 0x10; // include version
+	  b[i++] = tmh >>> 16 & 0xff;
+
+	  // `clock_seq_hi_and_reserved` (Per 4.2.2 - include variant)
+	  b[i++] = clockseq >>> 8 | 0x80;
+
+	  // `clock_seq_low`
+	  b[i++] = clockseq & 0xff;
+
+	  // `node`
+	  var node = options.node || _nodeId;
+	  for (var n = 0; n < 6; n++) {
+	    b[i + n] = node[n];
+	  }
+
+	  return buf ? buf : unparse(b);
+	}
+
+	// **`v4()` - Generate random UUID**
+
+	// See https://github.com/broofa/node-uuid for API details
+	function v4(options, buf, offset) {
+	  // Deprecated - 'format' argument, as supported in v1.2
+	  var i = buf && offset || 0;
+
+	  if (typeof(options) == 'string') {
+	    buf = options == 'binary' ? new Array(16) : null;
+	    options = null;
+	  }
+	  options = options || {};
+
+	  var rnds = options.random || (options.rng || _rng)();
+
+	  // Per 4.4, set bits for version and `clock_seq_hi_and_reserved`
+	  rnds[6] = (rnds[6] & 0x0f) | 0x40;
+	  rnds[8] = (rnds[8] & 0x3f) | 0x80;
+
+	  // Copy bytes to buffer, if provided
+	  if (buf) {
+	    for (var ii = 0; ii < 16; ii++) {
+	      buf[i + ii] = rnds[ii];
+	    }
+	  }
+
+	  return buf || unparse(rnds);
+	}
+
+	// Export public API
+	var uuid = v4;
+	uuid.v1 = v1;
+	uuid.v4 = v4;
+	uuid.parse = parse;
+	uuid.unparse = unparse;
+
+	module.exports = uuid;
+
 
 /***/ },
-/* 322 */
+/* 326 */
+/***/ function(module, exports) {
+
+	/* WEBPACK VAR INJECTION */(function(global) {
+	var rng;
+
+	if (global.crypto && crypto.getRandomValues) {
+	  // WHATWG crypto-based RNG - http://wiki.whatwg.org/wiki/Crypto
+	  // Moderately fast, high quality
+	  var _rnds8 = new Uint8Array(16);
+	  rng = function whatwgRNG() {
+	    crypto.getRandomValues(_rnds8);
+	    return _rnds8;
+	  };
+	}
+
+	if (!rng) {
+	  // Math.random()-based (RNG)
+	  //
+	  // If all else fails, use Math.random().  It's fast, but is of unspecified
+	  // quality.
+	  var  _rnds = new Array(16);
+	  rng = function() {
+	    for (var i = 0, r; i < 16; i++) {
+	      if ((i & 0x03) === 0) r = Math.random() * 0x100000000;
+	      _rnds[i] = r >>> ((i & 0x03) << 3) & 0xff;
+	    }
+
+	    return _rnds;
+	  };
+	}
+
+	module.exports = rng;
+
+
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
+
+/***/ },
+/* 327 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = function injectTapEventPlugin () {
@@ -41922,14 +42244,14 @@
 	  React.initializeTouchEvents(true);
 
 	  __webpack_require__(73).injection.injectEventPluginsByName({
-	    "ResponderEventPlugin": __webpack_require__(323),
-	    "TapEventPlugin":       __webpack_require__(324)
+	    "ResponderEventPlugin": __webpack_require__(328),
+	    "TapEventPlugin":       __webpack_require__(329)
 	  });
 	};
 
 
 /***/ },
-/* 323 */
+/* 328 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -42244,7 +42566,7 @@
 
 
 /***/ },
-/* 324 */
+/* 329 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -42272,7 +42594,7 @@
 	var EventPluginUtils = __webpack_require__(8);
 	var EventPropagators = __webpack_require__(97);
 	var SyntheticUIEvent = __webpack_require__(110);
-	var TouchEventUtils = __webpack_require__(325);
+	var TouchEventUtils = __webpack_require__(330);
 	var ViewportMetrics = __webpack_require__(78);
 
 	var keyOf = __webpack_require__(43);
@@ -42416,7 +42738,7 @@
 
 
 /***/ },
-/* 325 */
+/* 330 */
 /***/ function(module, exports) {
 
 	/**
