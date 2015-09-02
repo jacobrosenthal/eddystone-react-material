@@ -9,10 +9,6 @@ let Tab = mui.Tab;
 
 let deviceStates = [
   {
-    display: 'Out of Range',
-    value: 'Out of Range'
-   },
-  {
     display: 'Far',
     value: 'Far'
   },
@@ -28,7 +24,8 @@ let deviceStates = [
 
 let EddystoneAdd = React.createClass({
   propTypes: {
-    onVariableChange: React.PropTypes.func.isRequired
+    onVariableChange: React.PropTypes.func.isRequired,
+    errors: React.PropTypes.object.isRequired
   },
 
   childContextTypes: {
@@ -49,7 +46,7 @@ let EddystoneAdd = React.createClass({
           <TextField
             floatingLabelText='Device Name'
             value={this.props.name}
-            errorText={this.props.nameErrorText}
+            errorText={this.props.errors.nameErrorText}
             onChange={this._onTextField.bind(null, 'name')}/>
           <SelectField
             floatingLabelText='Device State'
@@ -61,17 +58,17 @@ let EddystoneAdd = React.createClass({
           <TextField
             floatingLabelText='URL'
             value={this.props.url}
-            errorText={this.props.urlError}
+            errorText={this.props.errors.urlError}
             onChange={this._onTextField.bind(null, 'url')}/>
           <TextField
             floatingLabelText='Telemetry Count'
             value={this.props.tlmCount}
-            errorText={this.props.telemetryCountError}
+            errorText={this.props.errors.telemetryCountError}
             onChange={this._onTextField.bind(null, 'tlmCount')}/>
           <TextField
             floatingLabelText='Telemetry Period'
             value={this.props.tlmPeriod}
-            errorText={this.props.telemetryPeriodError}
+            errorText={this.props.errors.telemetryPeriodError}
             onChange={this._onTextField.bind(null, 'tlmPeriod')}/>
           <TextField
             floatingLabelText='Battery'
@@ -87,7 +84,7 @@ let EddystoneAdd = React.createClass({
           <TextField
             floatingLabelText='Device Name'
             value={this.props.name}
-            errorText={this.props.nameErrorText}
+            errorText={this.props.errors.nameErrorText}
             onChange={this._onTextField.bind(null, 'name')}/>
           <SelectField
             floatingLabelText='Device State'
@@ -99,33 +96,33 @@ let EddystoneAdd = React.createClass({
           <TextField
             floatingLabelText='Namespace Id'
             value={this.props.namespaceId}
-            errorText={this.props.namespaceIdError}
+            errorText={this.props.errors.namespaceIdError}
             onChange={this._onTextField.bind(null, 'namespaceId')}/>
           <TextField
             floatingLabelText='Instance Id'
             value={this.props.instanceId}
-            errorText={this.props.instanceIdError}
+            errorText={this.props.errors.instanceIdError}
             onChange={this._onTextField.bind(null, 'instanceId')}/>
           <TextField
             floatingLabelText='Telemetry Count'
             value={this.props.tlmCount}
-            errorText={this.props.tlmCountError}
+            errorText={this.props.errors.tlmCountError}
             onChange={this._onTextField.bind(null, 'tlmCount')}/>
           <TextField
             floatingLabelText='Telemetry Period'
             value={this.props.tlmPeriod}
-            errorText={this.props.tlmPeriodError}
+            errorText={this.props.errors.tlmPeriodError}
             onChange={this._onTextField.bind(null, 'tlmPeriod')}/>
           <TextField
             floatingLabelText='Battery'
             value={this.props.battery}
-            errorText={this.props.batteryError}
+            errorText={this.props.errors.batteryError}
             onChange={this._onTextField.bind(null, 'battery')}/>
           <br/>
           <TextField
             floatingLabelText='Temperature'
             value={this.props.temperature}
-            errorText={this.props.temperatureError}
+            errorText={this.props.errors.temperatureError}
             onChange={this._onTextField.bind(null, 'temperature')}/>
           <br/>
         </Tab>

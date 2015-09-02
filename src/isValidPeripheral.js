@@ -1,24 +1,24 @@
 module.exports = function (peripheral) {
 
   if(peripheral.type === 'url'
-    && !peripheral.nameErrorText
-    && !peripheral.urlEror
-    && !peripheral.tlmPeriodError
-    && !peripheral.tlmCountError
-    && !peripheral.batteryError
-    && !peripheral.temperatureError)
+    && !peripheral.errors.nameErrorText
+    && !peripheral.errors.urlEror
+    && !peripheral.errors.tlmPeriodError
+    && !peripheral.errors.tlmCountError
+    && !peripheral.errors.batteryError
+    && !peripheral.errors.temperatureError)
   {
     return true;
   } else if(peripheral.type === 'uid'
-    && !peripheral.nameErrorText
-    && !peripheral.namespaceIdError
-    && !peripheral.instanceIdError
-    && !peripheral.tlmPeriodError
-    && !peripheral.tlmCountError
-    && !peripheral.batteryError
-    && !peripheral.temperatureError)
+    && !peripheral.errors.nameErrorText
+    && !peripheral.errors.namespaceIdError
+    && !peripheral.errors.instanceIdError
+    && !peripheral.errors.tlmPeriodError
+    && !peripheral.errors.tlmCountError
+    && !peripheral.errors.batteryError
+    && !peripheral.errors.temperatureError)
   {
-    return false;
+    return true;
   }
   return false;
 };

@@ -31,20 +31,20 @@ let EddystoneListItem = React.createClass({
     let uid = 'UID: ' + peripheral.namespaceId + peripheral.instanceId;
 
     let EnableButton = (<IconButton
-                    tooltip="Enable"
+                    tooltip="Disable"
                     onTouchTap={this.props.onButton}>
                     <DeviceBluetooth />
                   </IconButton>);
 
     let DisableButton = (<IconButton
-                    tooltip="Disable"
+                    tooltip="Enable"
                     onTouchTap={this.props.onButton}>
                     <DeviceBluetoothDisabled />
                   </IconButton>);
 
     return (
       <ListItem
-      rightIconButton={peripheral.status === 'Out of Range' ? EnableButton : DisableButton}
+      rightIconButton={peripheral.advertising ? EnableButton : DisableButton}
       onTouchTap={this.props.onRow}
       primaryText={<span>{peripheral.name} - {peripheral.status}</span>}
       secondaryText={

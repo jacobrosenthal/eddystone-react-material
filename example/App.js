@@ -77,7 +77,7 @@ let App = React.createClass({
         <EddystoneListItem
         peripheral={peripheral}
         onRow={self._onEdit.bind(null, peripheral, key)}
-        onButton={self._onChangeStatus.bind(null, peripheral)}
+        onButton={self._onChangeStatus.bind(null, key)}
         key={key}/>);
 
       PeripheralsList.push(Peripheral);
@@ -131,8 +131,13 @@ let App = React.createClass({
       let peripherals = this.state.peripherals;
       let peripheral = this.state.peripheral;
 
+      //wipe out errors
+      peripheral.errors = {};
+
+      Erm.syncPeripheral(peripheral);
+
+      // no way to update map? just delete existing then
       if(peripherals.has(uuid)) {
-        console.log('exists so deleting');
         peripherals.delete(uuid);
       }
 
@@ -143,8 +148,21 @@ let App = React.createClass({
     }
   },
 
-  _onChangeStatus: function (peripheral) {
-    console.log('_onChangeStatus not implemented yet');
+  _onChangeStatus: function (uuid) {
+    let peripherals = this.state.peripherals;
+    let peripheral = this.state.peripherals.get(uuid);
+
+    peripheral.advertising = !peripheral.advertising;
+
+    // no way to update map? just delete existing then
+    if(peripherals.has(uuid)) {
+      peripherals.delete(uuid);
+    }
+
+    peripherals.set(uuid, peripheral);
+    this.setState({ peripherals: peripherals });
+
+    Erm.syncPeripheral(peripheral);
   },
 
   _onVariableChange: function (variable, value) {

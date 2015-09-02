@@ -3,5 +3,6 @@ module.exports = {
   EddystoneListItem: require('./lib/EddystoneListItem'),
   getNewPeripheral: require('./lib/getNewPeripheral'),
   getValidatedPeripheral: require('./lib/getValidatedPeripheral'),
-  isValidPeripheral: require('./lib/isValidPeripheral')
+  isValidPeripheral: require('./lib/isValidPeripheral'),
+  syncPeripheral: require('./lib/syncPeripheral')
 };
