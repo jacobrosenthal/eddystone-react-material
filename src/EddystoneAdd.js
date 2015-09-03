@@ -6,6 +6,11 @@ let TextField = mui.TextField;
 let SelectField = mui.SelectField;
 let Tabs = mui.Tabs;
 let Tab = mui.Tab;
+let Toggle = mui.Toggle;
+
+let toggleStyle = {
+  paddingTop: '20',
+};
 
 let deviceStates = [
   {
@@ -40,8 +45,12 @@ let EddystoneAdd = React.createClass({
 
   render: function () {
 
-
     let SharedForm = (<span>
+      <Toggle
+        style={toggleStyle}
+        label="Advertising Enabled"
+        defaultToggled={this.props.advertising}
+        onToggle={this._onSwitch.bind(null, 'advertising')}/>
       <TextField
         floatingLabelText='Device Name'
         value={this.props.name}
@@ -112,6 +121,10 @@ let EddystoneAdd = React.createClass({
 
   _onActive: function (variable, tab) {
     this.props.onVariableChange(variable, tab.props.label);
+  },
+
+  _onSwitch: function (variable, event, enabled) {
+    this.props.onVariableChange(variable, enabled);
   }
 
 });

@@ -112,7 +112,7 @@ let App = React.createClass({
         </Dialog>
       </div>
     );
-  }, 
+  },
 
   _onAdd: function () {
     this.setState({ peripheral: Erm.getNewPeripheral(), uuid: uuidgen.v4() } );
@@ -149,10 +149,34 @@ let App = React.createClass({
   },
 
   _onChangeStatus: function (uuid) {
-    let peripherals = this.state.peripherals;
     let peripheral = this.state.peripherals.get(uuid);
-
     peripheral.advertising = !peripheral.advertising;
+    this._updatePeripheral(uuid, peripheral);
+  },
+
+  _onUserButton: function (uuid) {
+    let self = this;
+
+    let peripheral = this.state.peripherals.get(uuid);
+    let oldBattery = peripheral.battery;
+    peripheral.battery = 100;
+    this._updatePeripheral(uuid, peripheral);
+
+    setInterval(function () {
+      peripheral.battery = oldBattery;
+      self._updatePeripheral(uuid, peripheral);
+    }, 200);
+  },
+
+  _onVariableChange: function (variable, value) {
+    let peripheral = Erm.getValidatedPeripheral(this.state.peripheral, variable, value);
+
+    this.setState(peripheral);
+  },
+
+  _updatePeripheral: function (uuid, peripheral) {
+
+    let peripherals = this.state.peripherals;
 
     // no way to update map? just delete existing then
     if(peripherals.has(uuid)) {
@@ -163,14 +187,7 @@ let App = React.createClass({
     this.setState({ peripherals: peripherals });
 
     Erm.syncPeripheral(peripheral);
-  },
-
-  _onVariableChange: function (variable, value) {
-    let peripheral = Erm.getValidatedPeripheral(this.state.peripheral, variable, value);
-
-    this.setState(peripheral);
   }
-
 });
 
 module.exports = App;
