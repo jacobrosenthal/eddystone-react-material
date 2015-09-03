@@ -41354,64 +41354,58 @@
 
 	  render: function render() {
 
+	    var SharedForm = React.createElement(
+	      'span',
+	      null,
+	      React.createElement(TextField, {
+	        floatingLabelText: 'Device Name',
+	        value: this.props.name,
+	        errorText: this.props.errors.nameErrorText,
+	        onChange: this._onTextField.bind(null, 'name') }),
+	      React.createElement(SelectField, {
+	        floatingLabelText: 'Device State',
+	        value: this.props.status,
+	        valueMember: 'value',
+	        displayMember: 'display',
+	        menuItems: deviceStates,
+	        onChange: this._onSelectField.bind(null, 'status') }),
+	      React.createElement(TextField, {
+	        floatingLabelText: 'Telemetry Count',
+	        value: this.props.tlmCount,
+	        errorText: this.props.errors.telemetryCountError,
+	        onChange: this._onTextField.bind(null, 'tlmCount') }),
+	      React.createElement(TextField, {
+	        floatingLabelText: 'Telemetry Period',
+	        value: this.props.tlmPeriod,
+	        errorText: this.props.errors.telemetryPeriodError,
+	        onChange: this._onTextField.bind(null, 'tlmPeriod') }),
+	      React.createElement(TextField, {
+	        floatingLabelText: 'Battery',
+	        value: this.props.battery,
+	        onChange: this._onTextField.bind(null, 'battery') }),
+	      React.createElement(TextField, {
+	        floatingLabelText: 'Temperature',
+	        value: this.props.temperature,
+	        onChange: this._onTextField.bind(null, 'temperature') })
+	    );
+
 	    return React.createElement(
 	      Tabs,
 	      { value: this.props.type },
 	      React.createElement(
 	        Tab,
 	        { onActive: this._onActive.bind(null, 'type'), label: 'url', value: 'url' },
-	        React.createElement(TextField, {
-	          floatingLabelText: 'Device Name',
-	          value: this.props.name,
-	          errorText: this.props.errors.nameErrorText,
-	          onChange: this._onTextField.bind(null, 'name') }),
-	        React.createElement(SelectField, {
-	          floatingLabelText: 'Device State',
-	          value: this.props.status,
-	          valueMember: 'value',
-	          displayMember: 'display',
-	          menuItems: deviceStates,
-	          onChange: this._onSelectField.bind(null, 'status') }),
+	        SharedForm,
 	        React.createElement(TextField, {
 	          floatingLabelText: 'URL',
 	          value: this.props.url,
 	          errorText: this.props.errors.urlError,
-	          onChange: this._onTextField.bind(null, 'url') }),
-	        React.createElement(TextField, {
-	          floatingLabelText: 'Telemetry Count',
-	          value: this.props.tlmCount,
-	          errorText: this.props.errors.telemetryCountError,
-	          onChange: this._onTextField.bind(null, 'tlmCount') }),
-	        React.createElement(TextField, {
-	          floatingLabelText: 'Telemetry Period',
-	          value: this.props.tlmPeriod,
-	          errorText: this.props.errors.telemetryPeriodError,
-	          onChange: this._onTextField.bind(null, 'tlmPeriod') }),
-	        React.createElement(TextField, {
-	          floatingLabelText: 'Battery',
-	          value: this.props.battery,
-	          onChange: this._onTextField.bind(null, 'battery') }),
-	        React.createElement('br', null),
-	        React.createElement(TextField, {
-	          floatingLabelText: 'Temperature',
-	          value: this.props.temperature,
-	          onChange: this._onTextField.bind(null, 'temperature') })
+	          onChange: this._onTextField.bind(null, 'url') })
 	      ),
 	      React.createElement(
 	        Tab,
 	        { onActive: this._onActive.bind(null, 'type'), label: 'uid', value: 'uid' },
-	        React.createElement(TextField, {
-	          floatingLabelText: 'Device Name',
-	          value: this.props.name,
-	          errorText: this.props.errors.nameErrorText,
-	          onChange: this._onTextField.bind(null, 'name') }),
-	        React.createElement(SelectField, {
-	          floatingLabelText: 'Device State',
-	          value: this.props.status,
-	          valueMember: 'value',
-	          displayMember: 'display',
-	          menuItems: deviceStates,
-	          onChange: this._onSelectField.bind(null, 'status') }),
+	        SharedForm,
 	        React.createElement(TextField, {
 	          floatingLabelText: 'Namespace Id',
 	          value: this.props.namespaceId,
@@ -41422,27 +41416,6 @@
 	          value: this.props.instanceId,
 	          errorText: this.props.errors.instanceIdError,
 	          onChange: this._onTextField.bind(null, 'instanceId') }),
-	        React.createElement(TextField, {
-	          floatingLabelText: 'Telemetry Count',
-	          value: this.props.tlmCount,
-	          errorText: this.props.errors.tlmCountError,
-	          onChange: this._onTextField.bind(null, 'tlmCount') }),
-	        React.createElement(TextField, {
-	          floatingLabelText: 'Telemetry Period',
-	          value: this.props.tlmPeriod,
-	          errorText: this.props.errors.tlmPeriodError,
-	          onChange: this._onTextField.bind(null, 'tlmPeriod') }),
-	        React.createElement(TextField, {
-	          floatingLabelText: 'Battery',
-	          value: this.props.battery,
-	          errorText: this.props.errors.batteryError,
-	          onChange: this._onTextField.bind(null, 'battery') }),
-	        React.createElement('br', null),
-	        React.createElement(TextField, {
-	          floatingLabelText: 'Temperature',
-	          value: this.props.temperature,
-	          errorText: this.props.errors.temperatureError,
-	          onChange: this._onTextField.bind(null, 'temperature') }),
 	        React.createElement('br', null)
 	      )
 	    );
@@ -73157,10 +73130,8 @@
 
 	  if (peripheral.advertising) {
 	    if (peripheral.type === 'uid') {
-	      console.log('enable uid', peripheral.namespaceId, peripheral.instanceId, options);
 	      eddystone.advertiseUid(peripheral.namespaceId, peripheral.instanceId, options);
 	    } else {
-	      console.log('enable url', peripheral.url, options);
 	      eddystone.advertiseUrl(peripheral.url, options);
 	    }
 	  }

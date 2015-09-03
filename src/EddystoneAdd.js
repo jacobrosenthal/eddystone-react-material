@@ -40,59 +40,52 @@ let EddystoneAdd = React.createClass({
 
   render: function () {
 
+
+    let SharedForm = (<span>
+      <TextField
+        floatingLabelText='Device Name'
+        value={this.props.name}
+        errorText={this.props.errors.nameErrorText}
+        onChange={this._onTextField.bind(null, 'name')}/>
+      <SelectField
+        floatingLabelText='Device State'
+        value={this.props.status}
+        valueMember='value'
+        displayMember='display'
+        menuItems={deviceStates}
+        onChange={this._onSelectField.bind(null, 'status')}/>
+      <TextField
+        floatingLabelText='Telemetry Count'
+        value={this.props.tlmCount}
+        errorText={this.props.errors.telemetryCountError}
+        onChange={this._onTextField.bind(null, 'tlmCount')}/>
+      <TextField
+        floatingLabelText='Telemetry Period'
+        value={this.props.tlmPeriod}
+        errorText={this.props.errors.telemetryPeriodError}
+        onChange={this._onTextField.bind(null, 'tlmPeriod')}/>
+      <TextField
+        floatingLabelText='Battery'
+        value={this.props.battery}
+        onChange={this._onTextField.bind(null, 'battery')}/>
+      <TextField
+        floatingLabelText='Temperature'
+        value={this.props.temperature}
+        onChange={this._onTextField.bind(null, 'temperature')}/>
+    </span>);
+
     return (
       <Tabs value={this.props.type}>
         <Tab onActive={this._onActive.bind(null, 'type')} label='url' value='url' >
-          <TextField
-            floatingLabelText='Device Name'
-            value={this.props.name}
-            errorText={this.props.errors.nameErrorText}
-            onChange={this._onTextField.bind(null, 'name')}/>
-          <SelectField
-            floatingLabelText='Device State'
-            value={this.props.status}
-            valueMember='value'
-            displayMember='display'
-            menuItems={deviceStates}
-            onChange={this._onSelectField.bind(null, 'status')}/>
+          {SharedForm}
           <TextField
             floatingLabelText='URL'
             value={this.props.url}
             errorText={this.props.errors.urlError}
             onChange={this._onTextField.bind(null, 'url')}/>
-          <TextField
-            floatingLabelText='Telemetry Count'
-            value={this.props.tlmCount}
-            errorText={this.props.errors.telemetryCountError}
-            onChange={this._onTextField.bind(null, 'tlmCount')}/>
-          <TextField
-            floatingLabelText='Telemetry Period'
-            value={this.props.tlmPeriod}
-            errorText={this.props.errors.telemetryPeriodError}
-            onChange={this._onTextField.bind(null, 'tlmPeriod')}/>
-          <TextField
-            floatingLabelText='Battery'
-            value={this.props.battery}
-            onChange={this._onTextField.bind(null, 'battery')}/>
-          <br/>
-          <TextField
-            floatingLabelText='Temperature'
-            value={this.props.temperature}
-            onChange={this._onTextField.bind(null, 'temperature')}/>
         </Tab>
         <Tab onActive={this._onActive.bind(null, 'type')} label='uid' value='uid'>
-          <TextField
-            floatingLabelText='Device Name'
-            value={this.props.name}
-            errorText={this.props.errors.nameErrorText}
-            onChange={this._onTextField.bind(null, 'name')}/>
-          <SelectField
-            floatingLabelText='Device State'
-            value={this.props.status}
-            valueMember='value'
-            displayMember='display'
-            menuItems={deviceStates}
-            onChange={this._onSelectField.bind(null, 'status')}/>
+          {SharedForm}
           <TextField
             floatingLabelText='Namespace Id'
             value={this.props.namespaceId}
@@ -103,27 +96,6 @@ let EddystoneAdd = React.createClass({
             value={this.props.instanceId}
             errorText={this.props.errors.instanceIdError}
             onChange={this._onTextField.bind(null, 'instanceId')}/>
-          <TextField
-            floatingLabelText='Telemetry Count'
-            value={this.props.tlmCount}
-            errorText={this.props.errors.tlmCountError}
-            onChange={this._onTextField.bind(null, 'tlmCount')}/>
-          <TextField
-            floatingLabelText='Telemetry Period'
-            value={this.props.tlmPeriod}
-            errorText={this.props.errors.tlmPeriodError}
-            onChange={this._onTextField.bind(null, 'tlmPeriod')}/>
-          <TextField
-            floatingLabelText='Battery'
-            value={this.props.battery}
-            errorText={this.props.errors.batteryError}
-            onChange={this._onTextField.bind(null, 'battery')}/>
-          <br/>
-          <TextField
-            floatingLabelText='Temperature'
-            value={this.props.temperature}
-            errorText={this.props.errors.temperatureError}
-            onChange={this._onTextField.bind(null, 'temperature')}/>
           <br/>
         </Tab>
       </Tabs>
