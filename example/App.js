@@ -15,6 +15,8 @@ let Erm = require('../');
 let EddystoneAdd = Erm.EddystoneAdd;
 let EddystoneListItem = Erm.EddystoneListItem;
 
+let bleno = require('bleno');
+
 let uuidgen = require('uuid');
 
 let containerStyle = {
@@ -65,10 +67,25 @@ let App = React.createClass({
     ThemeManager.setPalette({
       accent1Color: Colors.deepOrange500
     });
+
+    bleno.on('bleno advertisingStartError', function (error) {
+      console.log('advertisingStartError', error);
+    });
+
+    bleno.on('bleno servicesSetError', function (error) {
+      console.log('servicesSetError', error);
+    });
+
+    bleno.on('bleno error', function (error) {
+      console.log('error', error);
+    });
+
+    bleno.on('stateChange', function (state) {
+      console.log('bleno stateChange', state);
+    });
   },
 
   render: function () {
-
     let self = this;
 
     let PeripheralsList = [];
@@ -115,46 +132,47 @@ let App = React.createClass({
   },
 
   _onAdd: function () {
-    this.setState({ peripheral: Erm.getNewPeripheral(), uuid: uuidgen.v4() } );
+    let uuid = uuidgen.v4();
+    console.log('_onAdd', uuid);
+
+    this.setState({ peripheral: Erm.getNewPeripheral(), uuid: uuid } );
     this.refs.PeripheralView.show();
   },
 
   _onEdit: function (peripheral, uuid) {
+    console.log('_onEdit', uuid);
+
     this.setState({ peripheral: peripheral, uuid: uuid } );
     this.refs.PeripheralView.show();
   },
 
   _onDialogSubmit: function () {
-    if(Erm.isValidPeripheral(this.state.peripheral)) {
+    let uuid = this.state.uuid;
 
-      let uuid = this.state.uuid;
-      let peripherals = this.state.peripherals;
+    if(Erm.isValidPeripheral(this.state.peripheral)) {
+      console.log('_onDialogSubmit', uuid, 'found valid');
       let peripheral = this.state.peripheral;
 
       //wipe out errors
       peripheral.errors = {};
 
-      Erm.syncPeripheral(peripheral);
-
-      // no way to update map? just delete existing then
-      if(peripherals.has(uuid)) {
-        peripherals.delete(uuid);
-      }
-
-      peripherals.set(uuid, peripheral);
-      this.setState({ peripherals: peripherals });
-
+      this._updatePeripheral(uuid, peripheral);
       this.refs.PeripheralView.dismiss();
+    }else {
+      console.log('_onDialogSubmit', uuid, 'found invalid');
     }
   },
 
   _onChangeStatus: function (uuid) {
     let peripheral = this.state.peripherals.get(uuid);
+    console.log('_onChangeStatus', uuid, 'to', !peripheral.advertising);
+
     peripheral.advertising = !peripheral.advertising;
     this._updatePeripheral(uuid, peripheral);
   },
 
   _onUserButton: function (uuid) {
+    console.log('_onUserButton depress', uuid);
     let self = this;
 
     let peripheral = this.state.peripherals.get(uuid);
@@ -163,6 +181,8 @@ let App = React.createClass({
     this._updatePeripheral(uuid, peripheral);
 
     setInterval(function () {
+      console.log('_onUserButton release', uuid);
+
       peripheral.battery = oldBattery;
       self._updatePeripheral(uuid, peripheral);
     }, 200);
@@ -175,7 +195,7 @@ let App = React.createClass({
   },
 
   _updatePeripheral: function (uuid, peripheral) {
-
+    console.log('_updatePeripheral', uuid);
     let peripherals = this.state.peripherals;
 
     // no way to update map? just delete existing then
