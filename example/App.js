@@ -3,6 +3,10 @@ let mui = require('material-ui');
 let ThemeManager = new mui.Styles.ThemeManager();
 let Colors = mui.Styles.Colors;
 
+let Card = mui.Card;
+let CardHeader = mui.CardHeader;
+let CardText = mui.CardText;
+
 let FloatingActionButton = mui.FloatingActionButton;
 let AppBar = mui.AppBar;
 
@@ -16,40 +20,35 @@ let EddystoneAdd = Erm.EddystoneAdd;
 let EddystoneListItem = Erm.EddystoneListItem;
 
 let bleno = require('bleno');
-
 let uuidgen = require('uuid');
 
-let containerStyle = {
-  textAlign: 'left'
-};
-
 let appBarStyle = {
-  textAlign: 'left'
+  paddingLeft: 72 // align with listitem text
 };
 
 let actionButtonStyle = {
-  margin: 'auto',
-  position: 'absolute',
-  top: '85%',
-  left: '85%'
+  marginTop: -25, // align with bottom of appbar
+  marginLeft: 8, // align with listitem icons
+  zIndex: 6 // move above list item actions
 };
 
 let emptyStyle = {
   color: Colors.minBlack,
   fontSize: 24,
-  margin: 'auto',
+  // center vertically within the page
+  // TODO: this needs work
   position: 'absolute',
   top: '50%',
-  left: '40%' //just need to properly size this..
+  left: '40%'
 };
-
 
 let App = React.createClass({
   getInitialState: function () {
     return {
       peripherals: new Map(),
       peripheral: {},
-      uuid: ''
+      uuid: '',
+      logs: []
     };
   },
 
@@ -64,24 +63,26 @@ let App = React.createClass({
   },
 
   componentWillMount: function () {
+    let self = this;
+
     ThemeManager.setPalette({
       accent1Color: Colors.deepOrange500
     });
 
     bleno.on('bleno advertisingStartError', function (error) {
-      console.log('advertisingStartError', error);
+      self._log('advertisingStartError ' + error);
     });
 
     bleno.on('bleno servicesSetError', function (error) {
-      console.log('servicesSetError', error);
+      self._log('servicesSetError ' + error);
     });
 
     bleno.on('bleno error', function (error) {
-      console.log('error', error);
+      self._log('error ' + error);
     });
 
     bleno.on('stateChange', function (state) {
-      console.log('bleno stateChange', state);
+      self._log('bleno stateChange ' + state);
     });
   },
 
@@ -94,7 +95,7 @@ let App = React.createClass({
         <EddystoneListItem
         peripheral={peripheral}
         onRow={self._onEdit.bind(null, peripheral, key)}
-        onButton={self._onChangeStatus.bind(null, key)}
+        onButton={self._onUserButton.bind(null, key)}
         key={key}/>);
 
       PeripheralsList.push(Peripheral);
@@ -109,15 +110,17 @@ let App = React.createClass({
       { text: 'Submit', onTouchTap: this._onDialogSubmit, ref: 'submit' }
     ];
 
+    let visibleLogs = this.state.logs.length > 5 ? this.state.logs.slice(this.state.logs.length-5) : this.state.logs;
+
     return (
-      <div style={containerStyle}>
+      <div>
         <AppBar style={appBarStyle} showMenuIconButton={false} title='Visual Bleno'/>
 
-        {this.state.peripherals.size > 0 ? Peripherals : EmptyPeripherals}
-
-        <FloatingActionButton style={actionButtonStyle} onTouchTap={this._onAdd}>
+        <FloatingActionButton style={actionButtonStyle} onTouchTap={this._onAdd} mini={true}>
           <ContentAdd/>
         </FloatingActionButton>
+
+        {this.state.peripherals.size > 0 ? Peripherals : EmptyPeripherals}
 
         <Dialog
           ref='PeripheralView'
@@ -127,20 +130,31 @@ let App = React.createClass({
           actionFocus='submit'>
           <EddystoneAdd onVariableChange={this._onVariableChange} {...this.state.peripheral}/>
         </Dialog>
+
+        <Card initiallyExpanded={false}>
+          <CardHeader
+            title="Logs"
+            showExpandableButton={true}/>
+          <CardText expandable={true}>
+            {visibleLogs.map((log, index) =>
+              <p key={index}>{log}</p>
+            )}
+          </CardText>
+        </Card>
       </div>
     );
   },
 
   _onAdd: function () {
     let uuid = uuidgen.v4();
-    console.log('_onAdd', uuid);
+    this._log('_onAdd ' + uuid);
 
     this.setState({ peripheral: Erm.getNewPeripheral(), uuid: uuid } );
     this.refs.PeripheralView.show();
   },
 
   _onEdit: function (peripheral, uuid) {
-    console.log('_onEdit', uuid);
+    this._log('_onEdit ' + uuid);
 
     this.setState({ peripheral: peripheral, uuid: uuid } );
     this.refs.PeripheralView.show();
@@ -150,7 +164,7 @@ let App = React.createClass({
     let uuid = this.state.uuid;
 
     if(Erm.isValidPeripheral(this.state.peripheral)) {
-      console.log('_onDialogSubmit', uuid, 'found valid');
+      this._log('_onDialogSubmit ' + uuid + ' found valid');
       let peripheral = this.state.peripheral;
 
       //wipe out errors
@@ -159,21 +173,21 @@ let App = React.createClass({
       this._updatePeripheral(uuid, peripheral);
       this.refs.PeripheralView.dismiss();
     }else {
-      console.log('_onDialogSubmit', uuid, 'found invalid');
+      this._log('_onDialogSubmit ' + uuid + ' found invalid');
     }
   },
 
   _onChangeStatus: function (uuid) {
     let peripheral = this.state.peripherals.get(uuid);
-    console.log('_onChangeStatus', uuid, 'to', !peripheral.advertising);
+    this._log('_onChangeStatus ' + uuid + ' to ' + !peripheral.advertising);
 
     peripheral.advertising = !peripheral.advertising;
     this._updatePeripheral(uuid, peripheral);
   },
 
   _onUserButton: function (uuid) {
-    console.log('_onUserButton depress', uuid);
     let self = this;
+    this._log('_onUserButton depress ' + uuid);
 
     let peripheral = this.state.peripherals.get(uuid);
     let oldBattery = peripheral.battery;
@@ -181,7 +195,7 @@ let App = React.createClass({
     this._updatePeripheral(uuid, peripheral);
 
     setInterval(function () {
-      console.log('_onUserButton release', uuid);
+      self._log('_onUserButton release ' +  uuid);
 
       peripheral.battery = oldBattery;
       self._updatePeripheral(uuid, peripheral);
@@ -195,7 +209,7 @@ let App = React.createClass({
   },
 
   _updatePeripheral: function (uuid, peripheral) {
-    console.log('_updatePeripheral', uuid);
+    this._log('_updatePeripheral ' + uuid);
     let peripherals = this.state.peripherals;
 
     // no way to update map? just delete existing then
@@ -207,6 +221,10 @@ let App = React.createClass({
     this.setState({ peripherals: peripherals });
 
     Erm.syncPeripheral(peripheral);
+  },
+
+  _log: function (text) {
+    this.setState({ logs: [ ...this.state.logs, text ] });
   }
 });
 
