@@ -194,7 +194,7 @@ let App = React.createClass({
     peripheral.battery = 100;
     this._updatePeripheral(uuid, peripheral);
 
-    setInterval(function () {
+    setTimeout(function () {
       self._log('_onUserButton release ' +  uuid);
 
       peripheral.battery = oldBattery;
