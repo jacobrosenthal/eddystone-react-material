@@ -7,6 +7,8 @@ let IconButton = mui.IconButton;
 
 let ToggleUnchecked = require('material-ui/lib/svg-icons/toggle/radio-button-unchecked');
 let ToggleChecked = require('material-ui/lib/svg-icons/toggle/radio-button-checked');
+let DeviceBluetooth = require('material-ui/lib/svg-icons/device/bluetooth');
+let DeviceBluetoothDisabled = require('material-ui/lib/svg-icons/device/bluetooth-disabled');
 
 let EddystoneListItem = React.createClass({
   propTypes: {
@@ -46,9 +48,10 @@ let EddystoneListItem = React.createClass({
 
     return (
       <ListItem
-      rightIconButton={peripheral.advertising ? DisableButton : EnableButton}
+      leftIcon={peripheral.advertising ? <DeviceBluetooth/> : <DeviceBluetoothDisabled/>}
+      rightIconButton={this.props.button ? DisableButton : EnableButton}
       onTouchTap={this.props.onRow}
-      primaryText={<span>{peripheral.name} - {peripheral.status} - {peripheral.advertising ? '' : 'not'} advertising</span>}
+      primaryText={<span>{peripheral.name} - {peripheral.status}</span>}
       secondaryText={
         <p>
           {peripheral.type === 'url' ? url : uid }
