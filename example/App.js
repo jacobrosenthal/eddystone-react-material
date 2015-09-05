@@ -86,6 +86,24 @@ let App = React.createClass({
     });
   },
 
+  componentWillUnMount: function () {
+
+    // remove listeners
+    bleno.removeListener('advertisingStartError');
+    bleno.removeListener('servicesSetError');
+    bleno.removeListener('xpcError');
+    bleno.removeListener('stateChange');
+
+    // stop advertising
+    for (let item of self.state.peripherals) {
+      let peripheral = item[1];
+      let eddystone = peripheral.eddystone;
+      if (eddystone) {
+        eddystone.stop();
+      }
+    }
+  },
+
   render: function () {
     let self = this;
 
