@@ -69,16 +69,16 @@ let App = React.createClass({
       accent1Color: Colors.deepOrange500
     });
 
-    bleno.on('bleno advertisingStartError', function (error) {
-      self._log('advertisingStartError ' + error);
+    bleno.on('advertisingStartError', function (error) {
+      self._log('bleno advertisingStartError ' + error);
     });
 
-    bleno.on('bleno servicesSetError', function (error) {
-      self._log('servicesSetError ' + error);
+    bleno.on('servicesSetError', function (error) {
+      self._log('bleno servicesSetError ' + error);
     });
 
-    bleno.on('bleno error', function (error) {
-      self._log('error ' + error);
+    bleno.on('xpcError', function (error) {
+      self._log('bleno xpcError ' + error);
     });
 
     bleno.on('stateChange', function (state) {
