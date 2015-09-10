@@ -18,8 +18,8 @@
   "author": "Jacob Rosenthal",
   "license": "MIT",
   "dependencies": {
-    "bleno": "git+https://github.com/jacobrosenthal/bleno#websocket-platformcheck",
-    "eddystone-beacon": "git://github.com/jacobrosenthal/node-eddystone-beacon#develop",
+    "bleno": "jacobrosenthal/bleno#websocket-platformcheck",
+    "eddystone-beacon": "jacobrosenthal/node-eddystone-beacon#develop",
     "random-words": "0.0.1",
     "uuid": "^2.0.1",
     "ws": "^0.8.0"
