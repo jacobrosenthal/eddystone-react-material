@@ -22619,7 +22619,9 @@
 	  getInitialState: function getInitialState() {
 	    return {
 	      peripherals: new Map(),
-	      peripheral: {},
+	      peripheral: {
+	        errors: {}
+	      },
 	      uuid: '',
 	      logs: []
 	    };
@@ -41578,18 +41580,20 @@
 	var randomWords = __webpack_require__(320);
 
 	module.exports = function getNewPeripheral() {
+	  var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
 	  return {
-	    name: randomWords({ exactly: 2, join: ' ' }),
-	    advertising: false,
-	    status: 'Far',
-	    tlmCount: 1,
-	    tlmPeriod: 0,
-	    namespaceId: '00010203040506070809',
-	    instanceId: 'aabbccddeeff',
-	    url: 'http://',
-	    type: 'url',
-	    temperature: -128,
-	    battery: 0,
+	    name: opts.name || randomWords({ exactly: 2, join: ' ' }),
+	    advertising: opts.advertising || false,
+	    status: opts.status || 'Far',
+	    tlmCount: opts.tlmCount || 2,
+	    tlmPeriod: opts.tlmPeriod || 10,
+	    namespaceId: opts.namespaceId || '00010203040506070809',
+	    instanceId: opts.instanceId || 'aabbccddeeff',
+	    url: opts.url || 'http://',
+	    type: opts.type || 'url',
+	    temperature: opts.temperature || -128,
+	    battery: opts.battery || 0,
 	    errors: {},
 	    eddystone: __webpack_require__(321)
 	  };

@@ -46,7 +46,9 @@ let App = React.createClass({
   getInitialState: function () {
     return {
       peripherals: new Map(),
-      peripheral: {},
+      peripheral: {
+        errors: {}
+      },
       uuid: '',
       logs: []
     };
