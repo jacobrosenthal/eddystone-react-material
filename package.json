@@ -18,13 +18,13 @@
   "author": "Jacob Rosenthal",
   "license": "MIT",
   "dependencies": {
-    "bleno": "jacobrosenthal/bleno#websocket-platformcheck",
     "eddystone-beacon": "jacobrosenthal/node-eddystone-beacon#develop",
     "random-words": "0.0.1",
     "uuid": "^2.0.1",
     "ws": "^0.8.0"
   },
   "devDependencies": {
+    "bleno": "jacobrosenthal/bleno#websocket-platformcheck",
     "babel": "^5.8.23",
     "babel-core": "^5.8.3",
     "babel-eslint": "^4.0.5",
@@ -37,8 +37,7 @@
     "material-ui": "jacobrosenthal/material-ui#context",
     "node-http-server": "^3.0.2",
     "react": "^0.13.0",
-    "react-tap-event-plugin": ">=0.1.3",
-    "uuid": "^2.0.1",
+    "react-tap-event-plugin": "^0.1.0",
     "webpack": "^1.12.0"
   }
 }
