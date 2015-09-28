@@ -41931,39 +41931,29 @@
 	}
 
 	Beacon.prototype.advertiseUid = function(namespaceId, instanceId, options) {
-	    var self = this;
 	    this._parseOptions(options);
 
-	    bleno.platform(function(error, platform){
-	        self._advertisementData = AdvertisementData.makeUidBuffer(namespaceId, instanceId, self._txPowerLevel, platform);
-	        self._mainAdvertisementData = self._advertisementData;
-	        self._advertiseWhenPoweredOn();
-	    });
+	    this._advertisementData = AdvertisementData.makeUidBuffer(namespaceId, instanceId, this._txPowerLevel, bleno.platform);
+	    this._mainAdvertisementData = this._advertisementData;
+	    this._advertiseWhenPoweredOn();
 	};
 
 	Beacon.prototype.advertiseUrl = function(url, options) {
-	    var self = this;
 	    this._parseOptions(options);
 
-	    bleno.platform(function(error, platform){
-	        self._advertisementData = AdvertisementData.makeUrlBuffer(url, self._txPowerLevel, platform);
-	        self._mainAdvertisementData = self._advertisementData;
-	        self._advertiseWhenPoweredOn();
-	    });
+	    this._advertisementData = AdvertisementData.makeUrlBuffer(url, this._txPowerLevel, bleno.platform);
+	    this._mainAdvertisementData = this._advertisementData;
+	    this._advertiseWhenPoweredOn();
 	};
 
 	Beacon.prototype.advertiseTlm = function() {
-	    var self = this;
+	    this._advertisementData = AdvertisementData.makeTlmBuffer(this._batteryVoltage, this._temperature, this._advCnt, this._secCnt, bleno.platform);
 
-	    bleno.platform(function(error, platform){
-	        self._advertisementData = AdvertisementData.makeTlmBuffer(self._batteryVoltage, self._temperature, self._advCnt, self._secCnt, platform);
-
-	        if (self._tlmPeriod === 0) {
-	            self._tlmPeriod = 1;
-	            self._tlmCount = 1;
-	        }
-	        self._advertiseWhenPoweredOn();
-	    });
+	    if (this._tlmPeriod === 0) {
+	        this._tlmPeriod = 1;
+	        this._tlmCount = 1;
+	    }
+	    this._advertiseWhenPoweredOn();
 	};
 
 	Beacon.prototype.setBatteryVoltage = function(batteryVoltage) {
@@ -42139,7 +42129,6 @@
 	var Descriptor = __webpack_require__(340);
 
 	var bindings = null;
-
 	var platform = os.platform();
 
 	if (process.env.BLENO_WEBSOCKET || process.title === 'browser') {
@@ -42153,6 +42142,7 @@
 	}
 
 	function Bleno() {
+	  this.platform = null;
 	  this.state = 'unknown';
 	  this.address = 'unknown';
 	  this.rssi = 0;
@@ -42180,9 +42170,21 @@
 	Bleno.prototype.onStateChange = function(state) {
 	  debug('stateChange ' + state);
 
+	  var self = this;
+
 	  this.state = state;
 
-	  this.emit('stateChange', state);
+	  function emit(OSPlatform) {
+	    self.platform = OSPlatform;
+	    self.emit('stateChange', state);
+	  }
+
+	  if(this.platform){
+	    this.emit('stateChange', state);
+	  }else{
+	    self._bindings.once('OSPlatform', emit);
+	    self._bindings.platform();
+	  }
 	};
 
 	Bleno.prototype.onAddressChange = function(address) {
@@ -42339,12 +42341,13 @@
 /* 326 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(Buffer) {/*!
+	/* WEBPACK VAR INJECTION */(function(Buffer, global) {/*!
 	 * The buffer module from node.js, for the browser.
 	 *
 	 * @author   Feross Aboukhadijeh <feross@feross.org> <http://feross.org>
 	 * @license  MIT
 	 */
+	/* eslint-disable no-proto */
 
 	var base64 = __webpack_require__(327)
 	var ieee754 = __webpack_require__(328)
@@ -42384,20 +42387,22 @@
 	 * We detect these buggy browsers and set `Buffer.TYPED_ARRAY_SUPPORT` to `false` so they
 	 * get the Object implementation, which is slower but behaves correctly.
 	 */
-	Buffer.TYPED_ARRAY_SUPPORT = (function () {
-	  function Bar () {}
-	  try {
-	    var arr = new Uint8Array(1)
-	    arr.foo = function () { return 42 }
-	    arr.constructor = Bar
-	    return arr.foo() === 42 && // typed array instances can be augmented
-	        arr.constructor === Bar && // constructor can be set
-	        typeof arr.subarray === 'function' && // chrome 9-10 lack `subarray`
-	        arr.subarray(1, 1).byteLength === 0 // ie10 has broken `subarray`
-	  } catch (e) {
-	    return false
-	  }
-	})()
+	Buffer.TYPED_ARRAY_SUPPORT = global.TYPED_ARRAY_SUPPORT !== undefined
+	  ? global.TYPED_ARRAY_SUPPORT
+	  : (function () {
+	      function Bar () {}
+	      try {
+	        var arr = new Uint8Array(1)
+	        arr.foo = function () { return 42 }
+	        arr.constructor = Bar
+	        return arr.foo() === 42 && // typed array instances can be augmented
+	            arr.constructor === Bar && // constructor can be set
+	            typeof arr.subarray === 'function' && // chrome 9-10 lack `subarray`
+	            arr.subarray(1, 1).byteLength === 0 // ie10 has broken `subarray`
+	      } catch (e) {
+	        return false
+	      }
+	    })()
 
 	function kMaxLength () {
 	  return Buffer.TYPED_ARRAY_SUPPORT
@@ -42553,10 +42558,16 @@
 	  return that
 	}
 
+	if (Buffer.TYPED_ARRAY_SUPPORT) {
+	  Buffer.prototype.__proto__ = Uint8Array.prototype
+	  Buffer.__proto__ = Uint8Array
+	}
+
 	function allocate (that, length) {
 	  if (Buffer.TYPED_ARRAY_SUPPORT) {
 	    // Return an augmented `Uint8Array` instance, for best performance
 	    that = Buffer._augment(new Uint8Array(length))
+	    that.__proto__ = Buffer.prototype
 	  } else {
 	    // Fallback: Return an object instance of the Buffer class
 	    that.length = length
@@ -43873,7 +43884,7 @@
 	  return i
 	}
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(326).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(326).Buffer, (function() { return this; }())))
 
 /***/ },
 /* 327 */
@@ -45754,7 +45765,9 @@
 
 	var BlenoBindings = function() {
 	  var port = 0xB1f;
-	  this._ws = new WebSocket('ws://localhost:' + port);
+	  var ip = process.env.IP || 'localhost';
+
+	  this._ws = new WebSocket('ws://' + ip + ':' + port);
 
 	  this._deviceUUID = null;
 
@@ -48739,12 +48752,18 @@
 	  this._done  = false
 	  var lower = ltgt.lowerBound(options)
 	  var upper = ltgt.upperBound(options)
-	  this._keyRange = lower || upper ? this.db.makeKeyRange({
-	    lower: lower,
-	    upper: upper,
-	    excludeLower: ltgt.lowerBoundExclusive(options),
-	    excludeUpper: ltgt.upperBoundExclusive(options)
-	  }) : null
+	  try {
+	    this._keyRange = lower || upper ? this.db.makeKeyRange({
+	      lower: lower,
+	      upper: upper,
+	      excludeLower: ltgt.lowerBoundExclusive(options),
+	      excludeUpper: ltgt.upperBoundExclusive(options)
+	    }) : null
+	  } catch (e) {
+	    // The lower key is greater than the upper key.
+	    // IndexedDB throws an error, but we'll just return 0 results.
+	    this._keyRangeError = true
+	  }
 	  this.callback = null
 	}
 
@@ -48782,6 +48801,7 @@
 
 	Iterator.prototype._next = function (callback) {
 	  if (!callback) return new Error('next() requires a callback argument')
+	  if (this._keyRangeError) return callback()
 	  if (!this._started) {
 	    this.createIterator()
 	    this._started = true
@@ -55499,7 +55519,7 @@
 		],
 		"repository": {
 			"type": "git",
-			"url": "https://github.com/rvagg/node-levelup.git"
+			"url": "git+https://github.com/rvagg/node-levelup.git"
 		},
 		"homepage": "https://github.com/rvagg/node-levelup",
 		"keywords": [
@@ -55556,7 +55576,7 @@
 		},
 		"_id": "levelup@0.18.6",
 		"_shasum": "e6a01cb089616c8ecc0291c2a9bd3f0c44e3e5eb",
-		"_from": "levelup@^0.18.2",
+		"_from": "levelup@>=0.18.2 <0.19.0",
 		"_npmVersion": "1.4.14",
 		"_npmUser": {
 			"name": "rvagg",
@@ -55575,7 +55595,7 @@
 		"directories": {},
 		"_resolved": "https://registry.npmjs.org/levelup/-/levelup-0.18.6.tgz",
 		"readme": "ERROR: No README data found!"
-	}
+	};
 
 /***/ },
 /* 404 */
@@ -70108,7 +70128,7 @@
 		"Connection Failed to be Established",
 		"MAC Connection Failed",
 		"Coarse Clock Adjustment Rejected but Will Try to Adjust Using Clock Dragging"
-	]
+	];
 
 /***/ },
 /* 501 */
@@ -71390,7 +71410,7 @@
 		"https://www.",
 		"http://",
 		"https://"
-	]
+	];
 
 /***/ },
 /* 507 */
@@ -71411,7 +71431,7 @@
 		".info",
 		".biz",
 		".gov"
-	]
+	];
 
 /***/ },
 /* 508 */
@@ -73151,7 +73171,6 @@
 	var Descriptor = __webpack_require__(527);
 
 	var bindings = null;
-
 	var platform = os.platform();
 
 	if (process.env.BLENO_WEBSOCKET || process.title === 'browser') {
@@ -73165,6 +73184,7 @@
 	}
 
 	function Bleno() {
+	  this.platform = null;
 	  this.state = 'unknown';
 	  this.address = 'unknown';
 	  this.rssi = 0;
@@ -73192,9 +73212,21 @@
 	Bleno.prototype.onStateChange = function(state) {
 	  debug('stateChange ' + state);
 
+	  var self = this;
+
 	  this.state = state;
 
-	  this.emit('stateChange', state);
+	  function emit(OSPlatform) {
+	    self.platform = OSPlatform;
+	    self.emit('stateChange', state);
+	  }
+
+	  if(this.platform){
+	    this.emit('stateChange', state);
+	  }else{
+	    self._bindings.once('OSPlatform', emit);
+	    self._bindings.platform();
+	  }
 	};
 
 	Bleno.prototype.onAddressChange = function(address) {
@@ -74027,7 +74059,9 @@
 
 	var BlenoBindings = function() {
 	  var port = 0xB1f;
-	  this._ws = new WebSocket('ws://localhost:' + port);
+	  var ip = process.env.IP || 'localhost';
+
+	  this._ws = new WebSocket('ws://' + ip + ':' + port);
 
 	  this._deviceUUID = null;
 
@@ -76191,7 +76225,7 @@
 		"Connection Failed to be Established",
 		"MAC Connection Failed",
 		"Coarse Clock Adjustment Rejected but Will Try to Adjust Using Clock Dragging"
-	]
+	];
 
 /***/ },
 /* 540 */
